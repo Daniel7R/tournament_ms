@@ -6,8 +6,8 @@ namespace TournamentMS.Infrastructure.Repository
 {
     public class TournamentRepository :ITournamentRepository
     {
-        private readonly AppDbTournamentContext _context;
-        public TournamentRepository(AppDbTournamentContext context) 
+        private readonly TournamentDbContext _context;
+        public TournamentRepository(TournamentDbContext context) 
         { 
             _context = context;
         }

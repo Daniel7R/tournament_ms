@@ -27,7 +27,7 @@ namespace TournamentMS.Application.Service
             _gameRepository = gameRepository;
             _mapper = mapper;
         }
-        public async Task<Tournament> CreateTournamentAsync(CreateTournamentRequest tournamentDTO)
+        public async Task<TournamentResponseDTO> CreateTournamentAsync(CreateTournamentRequest tournamentDTO)
         {
             if (tournamentDTO.Name.IsNullOrEmpty())
             {
@@ -63,9 +63,10 @@ namespace TournamentMS.Application.Service
 
             
 
-            await _tournamentRepository.AddAsync(tournament);
+            var response = await _tournamentRepository.AddAsync(tournament);
+            var tournamentResponse = _mapper.Map<TournamentResponseDTO>(response);
 
-            return tournament;
+            return tournamentResponse;
         }
 
         public async Task<TournamentResponseDTO> GetTournamentByIdAsync(int idTournament)

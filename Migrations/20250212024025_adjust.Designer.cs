@@ -11,7 +11,7 @@ using TournamentMS.Infrastructure.Data;
 
 namespace TournamentMS.Migrations
 {
-    [DbContext(typeof(AppDbTournamentContext))]
+    [DbContext(typeof(TournamentDbContext))]
     [Migration("20250212024025_adjust")]
     partial class adjust
     {

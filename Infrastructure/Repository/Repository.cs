@@ -5,10 +5,10 @@ namespace TournamentMS.Infrastructure.Repository
 {
     public class Repository<T>: IRepository<T> where T : class
     {
-        private readonly AppDbTournamentContext _context;
+        private readonly TournamentDbContext _context;
         private readonly DbSet<T> _dbSet;
         
-        public Repository(AppDbTournamentContext context)
+        public Repository(TournamentDbContext context)
         {
             _context = context;
             _dbSet = context.Set<T>();

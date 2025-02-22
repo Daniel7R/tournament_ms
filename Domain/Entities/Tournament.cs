@@ -19,18 +19,22 @@ namespace TournamentMS
         [Required]
         public int IdGame { get; set; }
         public Game Game { get; set; }
-        [Required, Range(2, 1000)]
-        public int MaxPlayers { get; set; }
-        public bool IsPaid { get; set; }
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal? Price { get; set; }
         [Required]
-        public int CreatedBy { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public bool IsFree { get; set; }
+        [Required]
+        public int IdOrganizer { get; set; }
+        [Required]
         public DateTime StartDate { get; set; }
+        [Required]
         public DateTime EndDate { get; set; }
+        [Required]
         public string Status { get; set; } = TournamentStatus.PENDING;
-        //public List<int> SubAdmins { get; set; }
+        public int? IdTeamWinnerTournament {  get; set; }
+        [Required]
+        public int IdPrize {  get; set; }
+        public Prizes Prize { get; set; }
+        public IEnumerable<TournamentUserRole> UsersTournamentRole { get; set; }
+        public IEnumerable<Matches> Matches { get; set; }
 
     }
 }

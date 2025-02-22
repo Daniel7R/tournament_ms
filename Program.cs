@@ -3,6 +3,7 @@ using TournamentMS.Application.Mapping;
 using TournamentMS.Application.Service;
 using TournamentMS.Application.Services;
 using TournamentMS.Infrastructure.Data;
+using TournamentMS.Infrastructure.EventBus;
 using TournamentMS.Infrastructure.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +17,7 @@ builder.Services.AddSwaggerGen();
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-builder.Services.AddNpgsql<AppDbTournamentContext>(builder.Configuration.GetConnectionString("dbConnectionTournaments"));
+builder.Services.AddNpgsql<TournamentDbContext>(builder.Configuration.GetConnectionString("dbConnectionTournaments"));
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
@@ -24,6 +25,12 @@ builder.Services.AddScoped<ITournamentService, TournamentService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddAutoMapper(typeof(Mapper));
+
+
+builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQ"));
+builder.Services.AddSingleton<IEventBusProducer, EventBusProducer>();
+
+
 
 builder.Services.AddHttpClient<UserService>(client =>
 {
