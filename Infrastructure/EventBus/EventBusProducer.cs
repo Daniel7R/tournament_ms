@@ -4,12 +4,13 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using TournamentMS.Application.Interfaces;
 //producer
 namespace TournamentMS.Infrastructure.EventBus
 {
-    public class EventBusProducer: IEventBusProducer, IAsyncDisposable
+    public class EventBusProducer: BackgroundService, IEventBusProducer, IAsyncDisposable
     {
         private IConnection _connection;
         private IChannel _channel;
@@ -18,18 +19,50 @@ namespace TournamentMS.Infrastructure.EventBus
         public EventBusProducer(IOptions<RabbitMQSettings> option)
         {
             _rabbitmqSettings = option.Value;
-            InitiliazeAsync().GetAwaiter().GetResult();
+            InitializeAsync().GetAwaiter().GetResult();
         }
 
-        private async Task InitiliazeAsync()
+        private async Task InitializeAsync()
         {
-            var factory = new ConnectionFactory { HostName = _rabbitmqSettings.Host, UserName= _rabbitmqSettings.Username, Password= _rabbitmqSettings.Password, Port= _rabbitmqSettings.Port };
+          /*  var basePath = AppContext.BaseDirectory;
+            var caCertPath = Path.Combine(basePath, "Infrastructure", "Security", _rabbitmqSettings.CaCertPath);
+            if (!File.Exists(caCertPath))
+            {
+                throw new FileNotFoundException("CA certificate not found");
+            }
+            var caCert = new X509Certificate2(caCertPath);
+          */
+            var factory = new ConnectionFactory { 
+                HostName = _rabbitmqSettings.Host, 
+                UserName= _rabbitmqSettings.Username, 
+                Password= _rabbitmqSettings.Password, 
+                Port= _rabbitmqSettings.Port,
+                AutomaticRecoveryEnabled = true,
+                NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
+                ContinuationTimeout= TimeSpan.FromSeconds(5),
+                /*Ssl = new SslOption
+                {
+                    Enabled = true,
+                    ServerName = _rabbitmqSettings.Host,
+                    //Certs = certCollection,
+                    Certs = new X509CertificateCollection { caCert },
+                    CertificateValidationCallback = (sender, certificate, chain, errors) =>
+                    {
+                        return errors == System.Net.Security.SslPolicyErrors.None;
+                    }
+                }*/
+            };
             _connection = await factory.CreateConnectionAsync();
             _channel = await _connection.CreateChannelAsync();
         }
 
         public async Task<TResponse> SendRequestAsync<TRequest, TResponse>(TRequest request, string queueName)
         {
+            if (_connection == null || !_connection.IsOpen || _channel.IsClosed)
+            {
+                await InitializeAsync();
+            }
+
             await _channel.QueueDeclareAsync(queue: queueName,
                                              durable: true,
                                              exclusive: false,
@@ -71,6 +104,19 @@ namespace TournamentMS.Infrastructure.EventBus
             return await tcs.Task;
         }
 
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            //await InitializeAsync();
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                if (_connection == null || !_connection.IsOpen || _channel == null || !_channel.IsOpen)
+                {
+                    await InitializeAsync();
+                }
+
+                await Task.Delay(500, stoppingToken);
+            }
+        }
         public async ValueTask DisposeAsync()
         {
             if (_channel != null)

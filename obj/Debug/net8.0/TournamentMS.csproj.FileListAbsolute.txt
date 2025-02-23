@@ -1,5 +1,6 @@
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\appsettings.json
+C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Infrastructure\Security\ca-cert.pem
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.exe
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.deps.json
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.runtimeconfig.json

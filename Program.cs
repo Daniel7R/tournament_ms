@@ -29,7 +29,7 @@ builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQ"));
 builder.Services.AddSingleton<IEventBusProducer, EventBusProducer>();
-
+builder.Services.AddHostedService<EventBusProducer>();
 
 
 builder.Services.AddHttpClient<UserService>(client =>
