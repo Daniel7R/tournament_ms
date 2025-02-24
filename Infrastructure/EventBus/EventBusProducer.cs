@@ -10,7 +10,7 @@ using TournamentMS.Application.Interfaces;
 //producer
 namespace TournamentMS.Infrastructure.EventBus
 {
-    public class EventBusProducer: BackgroundService, IEventBusProducer, IAsyncDisposable
+    public class EventBusProducer : BackgroundService, IEventBusProducer, IAsyncDisposable
     {
         private IConnection _connection;
         private IChannel _channel;
@@ -24,33 +24,30 @@ namespace TournamentMS.Infrastructure.EventBus
 
         private async Task InitializeAsync()
         {
-          /*  var basePath = AppContext.BaseDirectory;
-            var caCertPath = Path.Combine(basePath, "Infrastructure", "Security", _rabbitmqSettings.CaCertPath);
-            if (!File.Exists(caCertPath))
+            var basePath = AppContext.BaseDirectory;
+            var pfxCertPath = Path.Combine(basePath, "Infrastructure", "Security", _rabbitmqSettings.CertFile);
+            if (!File.Exists(pfxCertPath))
             {
-                throw new FileNotFoundException("CA certificate not found");
-            }
-            var caCert = new X509Certificate2(caCertPath);
-          */
-            var factory = new ConnectionFactory { 
-                HostName = _rabbitmqSettings.Host, 
-                UserName= _rabbitmqSettings.Username, 
-                Password= _rabbitmqSettings.Password, 
-                Port= _rabbitmqSettings.Port,
+                throw new FileNotFoundException("PFX certificate not found");
+            } 
+
+            var factory = new ConnectionFactory
+            {
+                HostName = _rabbitmqSettings.Host,
+                UserName = _rabbitmqSettings.Username,
+                Password = _rabbitmqSettings.Password,
+                Port = _rabbitmqSettings.Port,
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
-                ContinuationTimeout= TimeSpan.FromSeconds(5),
-                /*Ssl = new SslOption
+                ContinuationTimeout = TimeSpan.FromSeconds(5),
+                Ssl = new SslOption
                 {
                     Enabled = true,
-                    ServerName = _rabbitmqSettings.Host,
-                    //Certs = certCollection,
-                    Certs = new X509CertificateCollection { caCert },
-                    CertificateValidationCallback = (sender, certificate, chain, errors) =>
-                    {
-                        return errors == System.Net.Security.SslPolicyErrors.None;
-                    }
-                }*/
+                    ServerName = _rabbitmqSettings.ServerName,
+                    CertPath= pfxCertPath, 
+                    CertPassphrase = _rabbitmqSettings.CertPassphrase,
+                    Version = System.Security.Authentication.SslProtocols.Tls12
+                }
             };
             _connection = await factory.CreateConnectionAsync();
             _channel = await _connection.CreateChannelAsync();
@@ -82,7 +79,7 @@ namespace TournamentMS.Infrastructure.EventBus
             var messageBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(request));
 
             await _channel.BasicPublishAsync(exchange: "", routingKey: queueName, mandatory: false, basicProperties: props, body: messageBytes);
-            
+
             var tcs = new TaskCompletionSource<TResponse>();
 
             var consumer = new AsyncEventingBasicConsumer(_channel);

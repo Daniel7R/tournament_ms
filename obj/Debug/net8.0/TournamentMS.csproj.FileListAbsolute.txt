@@ -1,6 +1,5 @@
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\appsettings.json
-C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Infrastructure\Security\ca-cert.pem
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.exe
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.deps.json
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.runtimeconfig.json
@@ -179,3 +178,4 @@ C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.pdb
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.genruntimeconfig.cache
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\ref\TournamentMS.dll
+C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Infrastructure\Security\client_rabbit.pfx
