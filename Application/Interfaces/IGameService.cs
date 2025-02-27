@@ -1,5 +1,5 @@
-﻿using TournamentMS.Application.DTO;
-using TournamentMS.Application.DTOs;
+﻿using TournamentMS.Application.DTOs.Request;
+using TournamentMS.Application.DTOs.Response;
 using TournamentMS.Domain.Entities;
 
 namespace TournamentMS.Application.Interfaces

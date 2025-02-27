@@ -12,8 +12,8 @@ using TournamentMS.Infrastructure.Data;
 namespace TournamentMS.Migrations
 {
     [DbContext(typeof(TournamentDbContext))]
-    [Migration("20250220002715_schema")]
-    partial class schema
+    [Migration("20250226013156_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -65,7 +65,16 @@ namespace TournamentMS.Migrations
                             Id = 1,
                             Alias = "Racing",
                             Code = "0235",
+                            LimitParticipant = 20,
                             Name = "Carreras"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Alias = "Strategy",
+                            Code = "0236",
+                            LimitParticipant = 60,
+                            Name = "Estrategia"
                         });
                 });
 
@@ -106,14 +115,66 @@ namespace TournamentMS.Migrations
                         {
                             Id = 1,
                             IsCooperative = false,
-                            MaxPlayersPerTeam = 0,
-                            MaxTeams = 0,
+                            MaxPlayersPerTeam = 10,
+                            MaxTeams = 10,
                             Name = "Need For Speed",
+                            Players = 10
+                        },
+                        new
+                        {
+                            Id = 2,
+                            IsCooperative = true,
+                            MaxPlayersPerTeam = 5,
+                            MaxTeams = 2,
+                            Name = "League Of Legends",
                             Players = 10
                         });
                 });
 
-            modelBuilder.Entity("TournamentMS.Domain.Entities.Prize", b =>
+            modelBuilder.Entity("TournamentMS.Domain.Entities.Matches", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("IdStream")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdTeamWinner")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdTournament")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_tournament");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.Property<int>("TeamWinnerId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdTournament");
+
+                    b.HasIndex("TeamWinnerId");
+
+                    b.ToTable("matches", (string)null);
+                });
+
+            modelBuilder.Entity("TournamentMS.Domain.Entities.Prizes", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("integer");
@@ -130,7 +191,86 @@ namespace TournamentMS.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Prize");
+                    b.ToTable("prizes", (string)null);
+                });
+
+            modelBuilder.Entity("TournamentMS.Domain.Entities.Teams", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdGame")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdTournament")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsFull")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("teams", (string)null);
+                });
+
+            modelBuilder.Entity("TournamentMS.Domain.Entities.TeamsMatches", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdMatch")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdTeam")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MatchId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TeamId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("teams_matches", (string)null);
+                });
+
+            modelBuilder.Entity("TournamentMS.Domain.Entities.TeamsMembers", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdTeam")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdUser")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TeamId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("teams_members", (string)null);
                 });
 
             modelBuilder.Entity("TournamentMS.Domain.Entities.Tournament", b =>
@@ -220,15 +360,64 @@ namespace TournamentMS.Migrations
                     b.ToTable("tournaments_users_roles", (string)null);
                 });
 
-            modelBuilder.Entity("TournamentMS.Domain.Entities.Prize", b =>
+            modelBuilder.Entity("TournamentMS.Domain.Entities.Matches", b =>
+                {
+                    b.HasOne("TournamentMS.Domain.Entities.Tournament", "Tournament")
+                        .WithMany("Matches")
+                        .HasForeignKey("IdTournament")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TournamentMS.Domain.Entities.Teams", "TeamWinner")
+                        .WithMany()
+                        .HasForeignKey("TeamWinnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TeamWinner");
+
+                    b.Navigation("Tournament");
+                });
+
+            modelBuilder.Entity("TournamentMS.Domain.Entities.Prizes", b =>
                 {
                     b.HasOne("TournamentMS.Domain.Entities.Tournament", "Tournament")
                         .WithOne("Prize")
-                        .HasForeignKey("TournamentMS.Domain.Entities.Prize", "Id")
+                        .HasForeignKey("TournamentMS.Domain.Entities.Prizes", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Tournament");
+                });
+
+            modelBuilder.Entity("TournamentMS.Domain.Entities.TeamsMatches", b =>
+                {
+                    b.HasOne("TournamentMS.Domain.Entities.Matches", "Match")
+                        .WithMany()
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TournamentMS.Domain.Entities.Teams", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Match");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("TournamentMS.Domain.Entities.TeamsMembers", b =>
+                {
+                    b.HasOne("TournamentMS.Domain.Entities.Teams", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Team");
                 });
 
             modelBuilder.Entity("TournamentMS.Domain.Entities.Tournament", b =>
@@ -271,6 +460,8 @@ namespace TournamentMS.Migrations
 
             modelBuilder.Entity("TournamentMS.Domain.Entities.Tournament", b =>
                 {
+                    b.Navigation("Matches");
+
                     b.Navigation("Prize")
                         .IsRequired();
 

@@ -6,5 +6,6 @@ namespace TournamentMS.Infrastructure.Repository
     {
         Task<IEnumerable<Tournament>> GetTournamentWithCategoriesAndGames();
         Task<Tournament> GetTournamentWithCategoriesAndGamesById(int id);
+        Task<IEnumerable<Tournament>> GetFreeTournamentsByUserId(int userId);
     }
 }

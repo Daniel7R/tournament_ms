@@ -1,4 +1,5 @@
-﻿using TournamentMS.Application.DTOs;
+﻿using TournamentMS.Application.DTOs.Request;
+using TournamentMS.Application.DTOs.Response;
 
 namespace TournamentMS.Application.Interfaces
 {

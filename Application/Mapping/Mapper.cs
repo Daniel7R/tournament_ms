@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using TournamentMS.Application.DTO;
-using TournamentMS.Application.DTOs;
+using TournamentMS.Application.DTOs.Request;
+using TournamentMS.Application.DTOs.Response;
 using TournamentMS.Domain.Entities;
 
 namespace TournamentMS.Application.Mapping
@@ -9,7 +9,7 @@ namespace TournamentMS.Application.Mapping
     {
         public Mapper() { 
             CreateMap<Tournament, TournamentResponseDTO>().ReverseMap();
-            CreateMap<Tournament, CreateTournamentRequest>().ReverseMap();
+            CreateMap<Tournament, CreateTournamentRequest>().ReverseMap().ForMember(dest => dest.IdOrganizer, opt => opt.MapFrom(src => src.CreatedBy));
             CreateMap<Game, CreateGameDTO>().ReverseMap();
             CreateMap<Game,  GameResponseDTO>().ReverseMap();
             CreateMap<Category, CategoryResponseDTO>().ReverseMap();

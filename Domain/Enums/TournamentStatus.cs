@@ -1,9 +1,14 @@
-﻿namespace TournamentMS.Domain.Enums
+﻿using System.Runtime.Serialization;
+
+namespace TournamentMS.Domain.Enums
 {
-    public static class TournamentStatus
+    public enum TournamentStatus
     {
-        public const string PENDING = "PENDING";
-        public const string ONGOING = "ONGOING";
-        public const string FINISHED = "FINISHED";
+        [EnumMember(Value = "PENDING")]
+        PENDING,
+        [EnumMember(Value = "ONGOING")]
+        ONGOING,
+        [EnumMember(Value = "FINISHED")]
+        FINISHED
     }
 }

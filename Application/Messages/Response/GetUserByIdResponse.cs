@@ -1,4 +1,4 @@
-﻿namespace TournamentMS.Domain.Messages
+﻿namespace TournamentMS.Application.Messages.Response
 {
     public class GetUserByIdResponse
     {

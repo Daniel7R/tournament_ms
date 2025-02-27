@@ -48,5 +48,10 @@ namespace TournamentMS.Infrastructure.Repository
         {
             return await _context.Tournaments.Include(c => c.Category).Include(g => g.Game).FirstAsync(t => t.Id == id);
         }
+
+        public async Task<IEnumerable<Tournament>> GetFreeTournamentsByUserId(int userId)
+        {
+            return await _context.Tournaments.Where(t => t.IsFree == true && t.IdOrganizer == userId).ToListAsync();
+        }
     }
 }

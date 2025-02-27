@@ -28,7 +28,7 @@ namespace TournamentMS
         [Required]
         public DateTime EndDate { get; set; }
         [Required]
-        public string Status { get; set; } = TournamentStatus.PENDING;
+        public TournamentStatus Status { get; set; } = TournamentStatus.PENDING;
         public int? IdTeamWinnerTournament {  get; set; }
         [Required]
         public int IdPrize {  get; set; }

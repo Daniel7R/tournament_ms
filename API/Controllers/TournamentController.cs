@@ -1,9 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using TournamentMS.Application.DTO;
+using System.Security.Claims;
+using TournamentMS.Application.DTOs.Request;
+using TournamentMS.Application.DTOs.Response;
 using TournamentMS.Application.Interfaces;
-using TournamentMS.Domain.Messages;
+using TournamentMS.Application.Messages.Request;
+using TournamentMS.Application.Messages.Response;
+using TournamentMS.Application.Queues;
+using TournamentMS.Domain.Exceptions;
 
 namespace TournamentMS.API.Controllers
 {
@@ -12,12 +18,10 @@ namespace TournamentMS.API.Controllers
     public class TournamentController : ControllerBase
     {
         private readonly ITournamentService _tournamentService;
-        private readonly IEventBusProducer _eventBusProducer;
 
-        public TournamentController(ITournamentService tournamentService, IEventBusProducer eventBusProducer)
+        public TournamentController(ITournamentService tournamentService)
         {
             _tournamentService = tournamentService;
-            _eventBusProducer = eventBusProducer;
         }
 
         [HttpGet]
@@ -65,19 +69,20 @@ namespace TournamentMS.API.Controllers
             return Ok(_responseDTO);
         }
 
-
+        /*
         [HttpGet]
         [Route("testrabbit/{id}")]
         public async Task<IActionResult> TestRabbit(int id)
         {
             var request = new GetUserByIdRequest { Id = id };
-            var response = await _eventBusProducer.SendRequestAsync<GetUserByIdRequest, GetUserByIdResponse>(request, "GetUserById");
+            //var response = await _eventBusProducer.SendRequest<GetUserByIdRequest, GetUserByIdResponse>(request, Queues.GET_USER_BY_ID);
             return Ok(response);
-        }
+        }*/
         [HttpPost]
         [Route("tournaments", Name ="CreateTournament")]
+        [Authorize]
         [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO?>))]
-        [ProducesResponseType(400, Type = typeof(ResponseDTO<ModelStateDictionary?>))]
+        [ProducesResponseType(400, Type = typeof(ResponseDTO<object?>))]
         public async Task<IActionResult> CreateTournament([FromBody] CreateTournamentRequest tournamentCreated)
         {
             ResponseDTO<ModelStateDictionary?> _responseErrorDTO = new();
@@ -90,11 +95,20 @@ namespace TournamentMS.API.Controllers
             try
             {
                 ResponseDTO<TournamentResponseDTO?> _responseDTO = new();
+                var user = ExtractUserId();
+                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
 
+                tournamentCreated.CreatedBy = Convert.ToInt32(user);
                 var tournament = await _tournamentService.CreateTournamentAsync(tournamentCreated);
                 _responseDTO.Result = tournament;
 
                 return Ok(_responseDTO);
+            }
+            catch(BusinessRuleException bre)
+            {
+                _responseErrorDTO.IsSuccess = false;
+                _responseErrorDTO.Message = bre.Message;
+                return BadRequest(_responseErrorDTO);
             }
             catch (Exception ex)
             {
@@ -148,5 +162,14 @@ namespace TournamentMS.API.Controllers
 
         }
         */
+
+
+        private string? ExtractUserId() {
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                     ?? User.FindFirst("sub")?.Value;
+
+            return userId;
+        }
     }
 }

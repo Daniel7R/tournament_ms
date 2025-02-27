@@ -1,31 +1,36 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using TournamentMS.Application.DTO;
+using TournamentMS.Application.DTOs.Request;
+using TournamentMS.Application.DTOs.Response;
 using TournamentMS.Application.Interfaces;
+using TournamentMS.Application.Messages.Request;
+using TournamentMS.Application.Queues;
 using TournamentMS.Domain.Entities;
-using TournamentMS.Domain.Enums;
-using TournamentMS.Infrastructure.Data;
+using TournamentMS.Domain.Exceptions;
 using TournamentMS.Infrastructure.Repository;
 
 namespace TournamentMS.Application.Service
 {
-    public class TournamentService : ITournamentService
+    public class TournamentService : ITournamentService, ITournamentValidations
     {
         //private readonly IRepository<Tournament> _tournamentRepository;
         private readonly ITournamentRepository _tournamentRepository;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<Game> _gameRepository;
+        private readonly IEventBusProducer _eventBusProducer;
 
         private readonly IMapper _mapper;
-             
+        private const int LIMIT_FREE_TOURNAMENTS = 1;
+
         //public TournamentService(IRepository<Tournament> tournamentRepository, IRepository<Game> gameRepository, IRepository<Category> categoryRepository, IMapper mapper)
-        public TournamentService(ITournamentRepository tournamentRepository, IRepository<Game> gameRepository, IRepository<Category> categoryRepository, IMapper mapper)
+        public TournamentService(ITournamentRepository tournamentRepository, IRepository<Game> gameRepository, IRepository<Category> categoryRepository, IMapper mapper,IEventBusProducer eventBus)
         {
             _tournamentRepository = tournamentRepository;
             _categoryRepository = categoryRepository;
             _gameRepository = gameRepository;
             _mapper = mapper;
+            _eventBusProducer = eventBus;
         }
         public async Task<TournamentResponseDTO> CreateTournamentAsync(CreateTournamentRequest tournamentDTO)
         {
@@ -43,53 +48,34 @@ namespace TournamentMS.Application.Service
             var gameExists = await _gameRepository.GetByIdAsync(tournamentDTO.IdGame);
             if (gameExists == null)
                 throw new ArgumentException("Game does not exits");
+            if(tournamentDTO.CreatedBy == 0) throw new BusinessRuleException($"User can't be null");
+            var isReachedLimitFree = await UserHasAlreadyFreeTournaments(tournamentDTO.CreatedBy);
+            if (isReachedLimitFree == true) throw new BusinessRuleException($"User has already created {LIMIT_FREE_TOURNAMENTS} free tournaments");
             
             var tournament = _mapper.Map<Tournament>(tournamentDTO);
-                
-                /*new Tournament
-            {
-                Name = tournamentDTO.Name,
-                IdCategory = tournamentDTO.IdCategory,
-                IdGame = tournamentDTO.IdGame,
-                MaxPlayers = tournamentDTO.MaxPlayers,
-                IsPaid = tournamentDTO.IsPaid,
-                Price = tournamentDTO.Price,
-                CreatedBy = tournamentDTO.CreatedBy,
-                CreatedAt = DateTime.Now,
-                StartDate = tournamentDTO.StartDate,
-                EndDate = tournamentDTO.EndDate,
-                Status = TournamentStatus.PENDING
-            };*/
-
-            
 
             var response = await _tournamentRepository.AddAsync(tournament);
             var tournamentResponse = _mapper.Map<TournamentResponseDTO>(response);
+            tournamentResponse.MaxPlayers = gameExists.Players;
+
+            var generateTickets = new GenerateParticipantsTicketRequest
+            {
+                IdTournament = tournament.Id,
+                IsFree = tournament.IsFree,
+                QuantityTickets = tournamentResponse.MaxPlayers
+            };
+            await _eventBusProducer.PublishEventAsync<GenerateParticipantsTicketRequest>(generateTickets, Queues.Queues.GENERATE_PARTICIPANTS_TICKETS_ASYNC);
 
             return tournamentResponse;
         }
 
-        public async Task<TournamentResponseDTO> GetTournamentByIdAsync(int idTournament)
+        public async Task<TournamentResponseDTO?> GetTournamentByIdAsync(int idTournament)
         {
-            //var tournament = await _tournamentRepository.GetByIdAsync(idTournament);
             var tournament = await _tournamentRepository.GetTournamentWithCategoriesAndGamesById(idTournament);
 
             if (tournament == null) return null;
             var tournamentResponse = _mapper.Map<TournamentResponseDTO>(tournament);
                 
-                /*new TournamentResponseDTO
-            {
-                Id = tournament.Id,
-                Name = tournament.Name,
-                CategoryName = tournament.Category.Name,
-                GameName = tournament.Game.Name,
-                MaxPlayers = tournament.MaxPlayers,
-                IsPaid = tournament.IsPaid,
-                Price = tournament.Price,
-                CreatedAt= tournament.CreatedAt,
-                StartDate = tournament.StartDate,
-                EndDate = tournament.EndDate
-            }; */
             return tournamentResponse;
         }
 
@@ -115,27 +101,22 @@ namespace TournamentMS.Application.Service
 
             return tournamentsResponse;
         }
-        /*
-        public async Task UpdateTournament(TournamentCreatedDTO tournamentDTO, int idTournament)
+        
+        /// <summary>
+        ///  This method validates if a user has already, if it's true user has already reach limit and cancel operation, otherwise it would create
+        /// </summary>
+        /// <param name="idTournament">The id of </param>
+        /// <returns></returns>
+        public async Task<bool> UserHasAlreadyFreeTournaments(int idUser)
         {
-            var tournamentToUpdate = await _db.Tournaments.Select(t => t).Where(t => t.Id == idTournament).FirstOrDefaultAsync();
+            var request = await _tournamentRepository.GetFreeTournamentsByUserId(idUser);
+            var hasAlreadyLimit = false;
 
-            tournamentToUpdate.Name = tournamentDTO.Name;
-            tournamentToUpdate.IdCategory = tournamentDTO.IdCategory;
-            tournamentToUpdate.IdGame = tournamentDTO.IdGame;
-            tournamentToUpdate.MaxPlayers = tournamentDTO.MaxPlayers;
-            tournamentToUpdate.IsPaid = tournamentDTO.IsPaid;
-            tournamentDTO.Price = tournamentDTO.Price;
-
-            await _db.SaveChangesAsync();
+            if (request != null  && request.Count()== LIMIT_FREE_TOURNAMENTS)
+            {
+                hasAlreadyLimit = true;
+            }
+            return hasAlreadyLimit;
         }
-
-
-        public async Task DeleteTournament(int idTournament)
-        {
-            var tournamentToDelete = await _db.Tournaments.FindAsync(idTournament);
-
-            _db.Tournaments.Remove(tournamentToDelete);
-        }*/
     }
 }

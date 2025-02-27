@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.IdentityModel.Tokens;
-using TournamentMS.Application.DTOs;
+using TournamentMS.Application.DTOs.Request;
+using TournamentMS.Application.DTOs.Response;
 using TournamentMS.Application.Interfaces;
 using TournamentMS.Domain.Entities;
 using TournamentMS.Infrastructure.Repository;

@@ -2,6 +2,7 @@
 {
     public interface IEventBusProducer
     {
-        Task<TResponse> SendRequestAsync<TResquest, TResponse>(TResquest resquest, string queueName);
+        Task PublishEventAsync<TEvent>(TEvent eventMessage, string queueName);
+        Task<TResponse> SendRequest<TResquest, TResponse>(TResquest resquest, string queueName);
     }
 }

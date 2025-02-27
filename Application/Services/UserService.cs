@@ -1,4 +1,4 @@
-﻿using TournamentMS.Application.DTOs;
+﻿using TournamentMS.Application.DTOs.Request;
 
 namespace TournamentMS.Application.Services
 {
@@ -24,7 +24,7 @@ namespace TournamentMS.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error getting user {idUser}");
+                _logger.LogError($"Error getting user {idUser}: {ex.Message}");
                 return null;
             }
         }

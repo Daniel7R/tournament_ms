@@ -53,7 +53,7 @@ namespace TournamentMS.Infrastructure.EventBus
             _channel = await _connection.CreateChannelAsync();
         }
 
-        public async Task<TResponse> SendRequestAsync<TRequest, TResponse>(TRequest request, string queueName)
+        public async Task<TResponse> SendRequest<TRequest, TResponse>(TRequest request, string queueName)
         {
             if (_connection == null || !_connection.IsOpen || _channel.IsClosed)
             {
@@ -101,6 +101,24 @@ namespace TournamentMS.Infrastructure.EventBus
             return await tcs.Task;
         }
 
+        public async Task PublishEventAsync<TEvent>(TEvent eventMessage, string queueName)
+        {
+            if (_connection == null || !_connection.IsOpen || _channel.IsClosed)
+            {
+                await InitializeAsync();
+            }
+
+            await _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+
+            var messageBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(eventMessage));
+            var props = new BasicProperties
+            {
+                //in case rabbitmq is restarted
+                Persistent = true
+            };
+
+            await _channel.BasicPublishAsync(exchange: "", routingKey: queueName, mandatory: false, basicProperties: props, body: messageBytes);
+        }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             //await InitializeAsync();

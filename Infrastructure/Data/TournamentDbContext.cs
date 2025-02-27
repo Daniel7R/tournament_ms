@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TournamentMS.Domain.Entities;
+using TournamentMS.Domain.Enums;
+using TournamentMS.Infrastructure.Data.Converters;
 
 namespace TournamentMS.Infrastructure.Data
 {
@@ -41,7 +43,7 @@ namespace TournamentMS.Infrastructure.Data
             modelBuilder.Entity<Tournament>().Property(t => t.StartDate).HasColumnName("start_date");
             modelBuilder.Entity<Tournament>().Property(t => t.EndDate).HasColumnName("end_date");
             modelBuilder.Entity<Tournament>().Property(t => t.IdTeamWinnerTournament).HasColumnName("id_team_winner_tournmanent");
-            modelBuilder.Entity<Tournament>().Property(t => t.Status).HasColumnName("tournament_status");
+            modelBuilder.Entity<Tournament>().Property(t => t.Status).HasColumnName("tournament_status").HasConversion(new EnumToStringConverter<TournamentStatus>());
             modelBuilder.Entity<Tournament>().Property(t => t.IdPrize).HasColumnName("id_prize");
 
             modelBuilder.Entity<Category>().Property(c => c.Id).HasColumnName("id").ValueGeneratedOnAdd();
@@ -67,6 +69,19 @@ namespace TournamentMS.Infrastructure.Data
             modelBuilder.Entity<Matches>().Property(m => m.Id).HasColumnName("id").ValueGeneratedOnAdd();
             modelBuilder.Entity<Matches>().Property(m => m.Status).HasColumnName("status");
             modelBuilder.Entity<Matches>().Property(m => m.IdTournament).HasColumnName("id_tournament");
+
+
+            // <---To make sure does not repeat category
+            modelBuilder.Entity<Category>()
+                .HasIndex(c => c.Alias)
+                .IsUnique();
+            modelBuilder.Entity<Category>()
+                .HasIndex(c => c.Code)
+                .IsUnique();
+            modelBuilder.Entity<Category>()
+                .HasIndex(c => c.Name)
+                .IsUnique();
+            // --->
             modelBuilder.Entity<Matches>()
                 .HasOne(m => m.Tournament)
                 .WithMany(t => t.Matches)
@@ -113,7 +128,7 @@ namespace TournamentMS.Infrastructure.Data
                 LimitParticipant = 60
             });
 
-            modelBuilder.Entity<Game>().HasData(new Game {Id=1, Name = "Need For Speed", Players = 10, IsCooperative= false, MaxTeams=10, MaxPlayersPerTeam=10 });
+            modelBuilder.Entity<Game>().HasData(new Game {Id=1, Name = "Need For Speed", Players = 10, IsCooperative= false, MaxTeams=10, MaxPlayersPerTeam=1 });
             modelBuilder.Entity<Game>().HasData(new Game { Id = 2, Name = "League Of Legends", Players = 10, IsCooperative = true, MaxTeams = 2, MaxPlayersPerTeam = 5 });
         }
     }
