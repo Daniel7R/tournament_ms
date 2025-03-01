@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        private string Description { get; set; }
         public string CategoryName { get; set; }
         public string GameName { get; set; }
         public int MaxPlayers { get; set; }

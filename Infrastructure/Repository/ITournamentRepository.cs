@@ -1,4 +1,5 @@
 ﻿using TournamentMS.Domain.Entities;
+using TournamentMS.Domain.Enums;
 
 namespace TournamentMS.Infrastructure.Repository
 {
@@ -7,5 +8,6 @@ namespace TournamentMS.Infrastructure.Repository
         Task<IEnumerable<Tournament>> GetTournamentWithCategoriesAndGames();
         Task<Tournament> GetTournamentWithCategoriesAndGamesById(int id);
         Task<IEnumerable<Tournament>> GetFreeTournamentsByUserId(int userId);
+        Task<IEnumerable<Tournament>> GetTournamentsByStatus(TournamentStatus status);
     }
 }

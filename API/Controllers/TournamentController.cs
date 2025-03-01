@@ -9,6 +9,7 @@ using TournamentMS.Application.Interfaces;
 using TournamentMS.Application.Messages.Request;
 using TournamentMS.Application.Messages.Response;
 using TournamentMS.Application.Queues;
+using TournamentMS.Domain.Enums;
 using TournamentMS.Domain.Exceptions;
 
 namespace TournamentMS.API.Controllers
@@ -24,16 +25,56 @@ namespace TournamentMS.API.Controllers
             _tournamentService = tournamentService;
         }
 
+        [HttpPost]
+        [Route("tournaments", Name = "CreateTournament")]
+        [Authorize]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO?>))]
+        [ProducesResponseType(400, Type = typeof(ResponseDTO<object?>))]
+        public async Task<IActionResult> CreateTournament([FromBody] CreateTournamentRequest tournamentCreated)
+        {
+            ResponseDTO<ModelStateDictionary?> _responseErrorDTO = new();
+            if (!ModelState.IsValid)
+            {
+                _responseErrorDTO.IsSuccess = false;
+                _responseErrorDTO.Result = ModelState;
+                return BadRequest(_responseErrorDTO);
+            }
+            try
+            {
+                ResponseDTO<TournamentResponseDTO?> _responseDTO = new();
+                var user = ExtractUserId();
+                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
+
+                tournamentCreated.CreatedBy = Convert.ToInt32(user);
+                var tournament = await _tournamentService.CreateTournamentAsync(tournamentCreated);
+                _responseDTO.Result = tournament;
+
+                return Ok(_responseDTO);
+            }
+            catch (BusinessRuleException bre)
+            {
+                _responseErrorDTO.IsSuccess = false;
+                _responseErrorDTO.Message = bre.Message;
+                return BadRequest(_responseErrorDTO);
+            }
+            catch (Exception ex)
+            {
+                _responseErrorDTO.IsSuccess = false;
+                _responseErrorDTO.Message = ex.Message;
+                return BadRequest(_responseErrorDTO);
+            }
+        }
+
         [HttpGet]
         [Route("tournaments", Name ="GetTournaments")]
         [ProducesResponseType(200, Type =typeof(ResponseDTO<TournamentResponseDTO?>))]
         [ProducesResponseType(400, Type = typeof(ResponseDTO<TournamentResponseDTO?>))]
-        public async Task<IActionResult> GetTournaments()
+        public async Task<IActionResult> GetTournaments([FromQuery] TournamentStatus status)
         {
             ResponseDTO<IEnumerable<TournamentResponseDTO>?> _responseDTO = new();
             try
             {
-                var tournaments = await _tournamentService.GetTournamentsAsync();
+                var tournaments = await _tournamentService.GetTournamentsByStatus(status);
 
                 _responseDTO.Result = tournaments;
 
@@ -69,6 +110,25 @@ namespace TournamentMS.API.Controllers
             return Ok(_responseDTO);
         }
 
+
+        [HttpPatch]
+        [Route("tournaments/{id}", Name = "ChangeDate")]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO>))]
+        [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
+        public async Task<IActionResult> ChangeDate(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpPatch]
+        [Route("tournaments/{id}", Name = "ChangeTournamentStatus")]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO>))]
+        [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
+        public async Task<IActionResult> ChangeTournamentStatus(int id)
+        {
+            throw new NotImplementedException();
+        }
+
         /*
         [HttpGet]
         [Route("testrabbit/{id}")]
@@ -78,45 +138,6 @@ namespace TournamentMS.API.Controllers
             //var response = await _eventBusProducer.SendRequest<GetUserByIdRequest, GetUserByIdResponse>(request, Queues.GET_USER_BY_ID);
             return Ok(response);
         }*/
-        [HttpPost]
-        [Route("tournaments", Name ="CreateTournament")]
-        [Authorize]
-        [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO?>))]
-        [ProducesResponseType(400, Type = typeof(ResponseDTO<object?>))]
-        public async Task<IActionResult> CreateTournament([FromBody] CreateTournamentRequest tournamentCreated)
-        {
-            ResponseDTO<ModelStateDictionary?> _responseErrorDTO = new();
-            if (!ModelState.IsValid)
-            {
-                _responseErrorDTO.IsSuccess = false;
-                _responseErrorDTO.Result = ModelState;
-                return BadRequest(_responseErrorDTO);
-            }
-            try
-            {
-                ResponseDTO<TournamentResponseDTO?> _responseDTO = new();
-                var user = ExtractUserId();
-                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
-
-                tournamentCreated.CreatedBy = Convert.ToInt32(user);
-                var tournament = await _tournamentService.CreateTournamentAsync(tournamentCreated);
-                _responseDTO.Result = tournament;
-
-                return Ok(_responseDTO);
-            }
-            catch(BusinessRuleException bre)
-            {
-                _responseErrorDTO.IsSuccess = false;
-                _responseErrorDTO.Message = bre.Message;
-                return BadRequest(_responseErrorDTO);
-            }
-            catch (Exception ex)
-            {
-                _responseErrorDTO.IsSuccess = false;
-                _responseErrorDTO.Message = ex.Message;
-                return BadRequest(_responseErrorDTO);
-            }
-        }
 
         /*
 

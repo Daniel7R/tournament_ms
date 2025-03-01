@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TournamentMS.Domain.Entities;
+using TournamentMS.Domain.Enums;
 using TournamentMS.Infrastructure.Data;
 
 namespace TournamentMS.Infrastructure.Repository
@@ -39,9 +40,12 @@ namespace TournamentMS.Infrastructure.Repository
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<Tournament>> GetTournamentWithCategoriesAndGames()
+        public async Task<IEnumerable<Tournament>> GetTournamentWithCategoriesAndGames()
         {
-            throw new NotImplementedException();
+            return await _context.Tournaments
+                .Include(t => t.Game)
+                .Include(t => t.Category)
+                .ToListAsync();
         }
 
         public async Task<Tournament> GetTournamentWithCategoriesAndGamesById(int id)
@@ -52,6 +56,15 @@ namespace TournamentMS.Infrastructure.Repository
         public async Task<IEnumerable<Tournament>> GetFreeTournamentsByUserId(int userId)
         {
             return await _context.Tournaments.Where(t => t.IsFree == true && t.IdOrganizer == userId).ToListAsync();
+        }
+
+        public async Task<IEnumerable<Tournament>> GetTournamentsByStatus(TournamentStatus status)
+        {
+            return await _context.Tournaments
+                .Include(t => t.Game)
+                .Include(t => t.Category)
+                .Where(t => t.Status== status)
+                .ToListAsync();
         }
     }
 }

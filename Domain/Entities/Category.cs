@@ -11,7 +11,7 @@ namespace TournamentMS.Domain.Entities
         public string Code { get; set; }
         [Required, MaxLength(255)]
         public string Alias { get; set; }
-        public int? LimitParticipant {  get; set; }
+        public int LimitParticipant {  get; set; }
         public ICollection<Tournament> Tournaments { get; set; }
     }
 }

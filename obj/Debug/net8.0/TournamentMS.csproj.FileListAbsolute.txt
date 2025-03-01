@@ -11,6 +11,7 @@ C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Azure.Core.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Azure.Identity.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Humanizer.dll
+C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.Internal.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
@@ -179,4 +180,3 @@ C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.pdb
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.genruntimeconfig.cache
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\ref\TournamentMS.dll
-C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
