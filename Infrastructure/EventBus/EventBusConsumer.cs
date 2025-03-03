@@ -4,6 +4,11 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using TournamentMS.Application.Interfaces;
+using TournamentMS.Application.Messages.Request;
+using TournamentMS.Application.Messages.Response;
+using TournamentMS.Application.Queues;
+using TournamentMS.Domain.Entities;
+using TournamentMS.Infrastructure.Repository;
 
 namespace TournamentMS.Infrastructure.EventBus
 {
@@ -75,7 +80,40 @@ namespace TournamentMS.Infrastructure.EventBus
 
         private void RegisterHandlers()
         {
-            //falta definir los manejadores con sus respectivas colas
+            RegisterQueueHandler<GetTournamentById, GetTournamentByIdResponse>(Queues.GET_TOURNAMENT_BY_ID, async (request) =>
+            {
+                using (IServiceScope scope = _serviceScopeFactory.CreateScope())
+                {
+                    ITournamentRepository tournamentRepository = scope.ServiceProvider.GetRequiredService<ITournamentRepository>();
+                    Tournament? tournament = await tournamentRepository.GetByIdAsync(request.IdTournament);
+
+                    return new GetTournamentByIdResponse
+                    {
+                        IdTournament = tournament?.Id ?? 0,
+                        IsFree = tournament?.IsFree ?? false,
+                    };
+                }
+            });
+
+            RegisterQueueHandler<int, GetMatchByIdResponse>(Queues.GET_MATCH_INFO, async (idMatch) =>
+            {
+                using(IServiceScope scope = _serviceScopeFactory.CreateScope())
+                {
+                    IRepository<Matches> matchesRepo = scope.ServiceProvider.GetRequiredService<IRepository<Matches>>();
+                    Matches? match = await matchesRepo.GetByIdAsync(idMatch);
+                    if(match == null)
+                    {
+                        return new GetMatchByIdResponse();
+                    }
+                    return new GetMatchByIdResponse
+                    {
+                        IdMatch = match?.Id ?? 0,
+                        Date = match.Date,
+                        Name =match.Name,
+                        Status = match.Status?? string.Empty
+                    };
+                }
+            });
         }
 
         public void RegisterQueueHandler<TRequest, TResponse>(string queueName, Func<TRequest, Task<TResponse>> handler) 
