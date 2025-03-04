@@ -3,7 +3,7 @@ using RabbitMQ.Client;
 
 namespace TournamentMS.Infrastructure.EventBus
 {
-    public class EventBusBase: IAsyncDisposable
+    public class EventBusBase: BackgroundService, IAsyncDisposable
     {
         protected IConnection _connection;
         protected IChannel _channel;
@@ -70,5 +70,17 @@ namespace TournamentMS.Infrastructure.EventBus
             }
         }
 
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                if (_connection == null || !_connection.IsOpen || _channel == null || !_channel.IsOpen)
+                {
+                    await InitializeAsync();
+                }
+
+                await Task.Delay(500, stoppingToken);
+            }
+        }
     }
 }
