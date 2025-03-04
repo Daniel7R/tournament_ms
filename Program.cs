@@ -1,3 +1,4 @@
+using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using TournamentMS.Application.Interfaces;
 using TournamentMS.Application.Mapping;
@@ -9,7 +10,9 @@ using TournamentMS.Infrastructure.EventBus;
 using TournamentMS.Infrastructure.Repository;
 using TournamentMS.Infrastructure.Swagger;
 
+Env.Load();
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
 
 // Add services to the container.
 
