@@ -55,11 +55,16 @@ namespace TournamentMS.Infrastructure.Data
             modelBuilder.Entity<Game>().Property(g => g.Name).HasColumnName("name");
             modelBuilder.Entity<Game>().Property(g => g.Players).HasColumnName("players");
 
+            modelBuilder.Entity<Prizes>().Property(p => p.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            //modelBuilder.Entity<Prizes>().Property(p => p.IdTournament).HasColumnName("id_tournament");
+            modelBuilder.Entity<Prizes>().Property(p => p.Description).HasColumnName("description");
+            modelBuilder.Entity<Prizes>().Property(p => p.Total).HasColumnName("total");
+
             modelBuilder.Entity<TournamentUserRole>()
-                .HasKey(tur => new { tur.IdUser, tur.IdTournament, tur.IdRole });
+                .HasKey(tur => new { tur.IdUser, tur.IdTournament, tur.Role });
             modelBuilder.Entity<TournamentUserRole>().Property(t => t.IdTournament).HasColumnName("id_tournament");
             modelBuilder.Entity<TournamentUserRole>().Property(t => t.IdUser).HasColumnName("id_user");
-            modelBuilder.Entity<TournamentUserRole>().Property(t => t.IdRole).HasColumnName("id_role");
+            modelBuilder.Entity<TournamentUserRole>().Property(t => t.Role  ).HasColumnName("role").HasConversion<string>();
             modelBuilder.Entity<TournamentUserRole>()
                 .HasOne<Tournament>()
                 .WithMany(t => t.UsersTournamentRole)
@@ -88,10 +93,10 @@ namespace TournamentMS.Infrastructure.Data
                 .HasForeignKey(m => m.IdTournament)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Prizes>()
-                .HasOne(p => p.Tournament)
-                .WithOne(t => t.Prize)
-                .HasForeignKey<Tournament>(t => t.IdPrize);
+            modelBuilder.Entity<Tournament>()
+                .HasOne(t => t.Prize)
+                .WithOne(p => p.Tournament)
+                .HasForeignKey<Tournament>(p => p.IdPrize);
 
 
             modelBuilder.Entity<Tournament>()
@@ -99,12 +104,12 @@ namespace TournamentMS.Infrastructure.Data
                 .WithMany(c => c.Tournaments)
                 .HasForeignKey(t => t.IdCategory)
                 .OnDelete(DeleteBehavior.Cascade);
-            modelBuilder.Entity<Tournament>()
+            /*modelBuilder.Entity<Tournament>()
                 .HasOne(t => t.Prize)
                 .WithOne(p => p.Tournament)
-                .HasForeignKey<Prizes>(p => p.Id)
+                .HasForeignKey<Prizes>(p => p.IdTournament)
                 .OnDelete(DeleteBehavior.Cascade);
-
+            */
             modelBuilder.Entity<Tournament>()
                 .HasOne(t => t.Game)
                 .WithMany(g => g.Tournaments)

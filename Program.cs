@@ -32,7 +32,10 @@ builder.Services.AddDbContextPool<TournamentDbContext>(options =>
 
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IPrizeService, PrizeService>();
+builder.Services.AddScoped<IUserTournamentRoleService, UserTournamentRoleService>();
 builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
+builder.Services.AddScoped<ITournamentUserRoleRepository, TournamentUserRoleRepository>();
 builder.Services.AddScoped<ITournamentService, TournamentService>();
 builder.Services.AddScoped<ITournamentValidations, TournamentService>();
 builder.Services.AddScoped<IGameService, GameService>();

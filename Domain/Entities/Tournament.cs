@@ -30,9 +30,9 @@ namespace TournamentMS
         [Required]
         public TournamentStatus Status { get; set; } = TournamentStatus.PENDING;
         public int? IdTeamWinnerTournament {  get; set; }
-        [Required]
-        public int IdPrize {  get; set; }
-        public Prizes Prize { get; set; }
+        //[Required]
+        public int? IdPrize {  get; set; }
+        public Prizes? Prize { get; set; }
         public IEnumerable<TournamentUserRole> UsersTournamentRole { get; set; }
         public IEnumerable<Matches> Matches { get; set; }
 

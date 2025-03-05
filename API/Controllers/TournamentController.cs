@@ -66,8 +66,8 @@ namespace TournamentMS.API.Controllers
         }
 
         [HttpGet]
-        [Route("tournaments", Name ="GetTournaments")]
-        [ProducesResponseType(200, Type =typeof(ResponseDTO<TournamentResponseDTO?>))]
+        [Route("tournaments", Name = "GetTournaments")]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO?>))]
         [ProducesResponseType(400, Type = typeof(ResponseDTO<TournamentResponseDTO?>))]
         public async Task<IActionResult> GetTournaments([FromQuery] TournamentStatus status)
         {
@@ -91,12 +91,12 @@ namespace TournamentMS.API.Controllers
 
         [HttpGet]
         [Route("tournaments/{id}", Name = "GetTournamentById")]
-        [ProducesResponseType(200, Type =typeof(ResponseDTO<TournamentResponseDTO>))]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO>))]
         [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
         public async Task<IActionResult> GetTournament(int id)
         {
             var tournament = await _tournamentService.GetTournamentByIdAsync(id);
-            ResponseDTO<TournamentResponseDTO?> _responseDTO= new();
+            ResponseDTO<TournamentResponseDTO?> _responseDTO = new();
 
             if (tournament == null)
             {
@@ -112,7 +112,7 @@ namespace TournamentMS.API.Controllers
 
 
         [HttpPatch]
-        [Route("tournaments/{id}", Name = "ChangeDate")]
+        [Route("tournaments/{id}/date", Name = "ChangeDate")]
         [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO>))]
         [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
         public async Task<IActionResult> ChangeDate(int id)
@@ -120,8 +120,34 @@ namespace TournamentMS.API.Controllers
             throw new NotImplementedException();
         }
 
+        [HttpPost]
+        [Route("tournaments/{id}/prize")]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<CreatePrizeDTO?>))]
+        [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
+        public async Task<IActionResult> AssignTournamentPrize(int idTournament, [FromBody] CreatePrizeDTO prize)
+        {
+            var response = new ResponseDTO<CreatePrizeDTO>();
+            try
+            {
+                var user = ExtractUserId();
+                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
+                int idUser = Convert.ToInt32(user);
+
+                CreatePrizeDTO prizeCreated = await _tournamentService.CreatePrizeAndAssignToTournament(prize, idTournament, idUser);
+                
+                return Ok(response);
+            }
+            catch (BusinessRuleException ex) 
+            {
+                response.Message = ex.Message;
+
+                return BadRequest(response);
+            }
+        }
+
+
         [HttpPatch]
-        [Route("tournaments/{id}", Name = "ChangeTournamentStatus")]
+        [Route("tournaments/{id}/status", Name = "ChangeTournamentStatus")]
         [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO>))]
         [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
         public async Task<IActionResult> ChangeTournamentStatus(int id)
@@ -185,7 +211,8 @@ namespace TournamentMS.API.Controllers
         */
 
 
-        private string? ExtractUserId() {
+        private string? ExtractUserId()
+        {
 
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                      ?? User.FindFirst("sub")?.Value;

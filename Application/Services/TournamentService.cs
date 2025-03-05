@@ -17,6 +17,7 @@ namespace TournamentMS.Application.Service
     {
         //private readonly IRepository<Tournament> _tournamentRepository;
         private readonly ITournamentRepository _tournamentRepository;
+        private readonly IPrizeService _prizeService;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<Game> _gameRepository;
         private readonly IEventBusProducer _eventBusProducer;
@@ -26,13 +27,14 @@ namespace TournamentMS.Application.Service
         private int LIMIT_FREE_VIEWERS;
 
         //public TournamentService(IRepository<Tournament> tournamentRepository, IRepository<Game> gameRepository, IRepository<Category> categoryRepository, IMapper mapper)
-        public TournamentService(ITournamentRepository tournamentRepository, IRepository<Game> gameRepository, IRepository<Category> categoryRepository, IMapper mapper,IEventBusProducer eventBus)
+        public TournamentService(ITournamentRepository tournamentRepository, IRepository<Game> gameRepository, IRepository<Category> categoryRepository, IMapper mapper,IEventBusProducer eventBus, IPrizeService prizeService)
         {
             _tournamentRepository = tournamentRepository;
             _categoryRepository = categoryRepository;
             _gameRepository = gameRepository;
             _mapper = mapper;
             _eventBusProducer = eventBus;
+            _prizeService = prizeService;
         }
         public async Task<TournamentResponseDTO> CreateTournamentAsync(CreateTournamentRequest tournamentDTO)
         {
@@ -115,19 +117,41 @@ namespace TournamentMS.Application.Service
 
             var tournamentResponse = _mapper.Map<IEnumerable<TournamentResponseDTO>>(tournaments).ToList();
 
-
-            tournamentResponse.ForEach(t =>
+            if(tournamentResponse.Count() > 0)
             {
-                var tournament = tournaments.FirstOrDefault(x => x.Id == t.Id);
-                if (tournament != null)
+                tournamentResponse.ForEach(t =>
                 {
-                    t.CategoryName = tournament.Category?.Name;
-                    t.GameName = tournament.Game?.Name;
-                    t.MaxPlayers = tournament.Category.LimitParticipant;
-                }
-            });
+                    var tournament = tournaments.FirstOrDefault(x => x.Id == t.Id);
+                    if (tournament != null)
+                    {
+                        t.CategoryName = tournament.Category.Name;
+                        t.GameName = tournament.Game.Name;
+                        t.MaxPlayers = tournament.Category.LimitParticipant;
+                    }
+                });
+            }
+
 
             return tournamentResponse;
+        }
+        public async Task<CreatePrizeDTO> CreatePrizeAndAssignToTournament(CreatePrizeDTO prize, int idTournament, int idUser)
+        {
+            //validations tournament
+            Tournament? tournament = await _tournamentRepository.GetByIdAsync(idTournament);
+            if (tournament == null) throw new BusinessRuleException("Tournament does not exist");
+            //creation
+            Prizes prizeConverted = _mapper.Map<Prizes>(prize);
+            await _prizeService.CreatePrize(prizeConverted);
+
+            int idPrize = prizeConverted.Id;
+            await AssignPrizeTournament(idPrize, tournament);
+
+            return _mapper.Map<CreatePrizeDTO>(prizeConverted);
+        }
+
+        private async Task AssignPrizeTournament(int idPrize, Tournament tournament)
+        {
+            await _tournamentRepository.AssignPrizeTournament(idPrize, tournament);
         }
     }
 }

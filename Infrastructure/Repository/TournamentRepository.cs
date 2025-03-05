@@ -66,5 +66,24 @@ namespace TournamentMS.Infrastructure.Repository
                 .Where(t => t.Status== status)
                 .ToListAsync();
         }
+
+        public async Task<bool> AssignPrizeTournament(int idPrize, Tournament tournament)
+        {
+            try
+            {
+                tournament.IdPrize = idPrize;
+
+                _context.Tournaments.Attach(tournament);
+                _context.Entry(tournament).Property(t => t.IdPrize).IsModified = true;
+
+                await _context.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }
