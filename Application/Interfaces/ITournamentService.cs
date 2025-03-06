@@ -10,7 +10,7 @@ namespace TournamentMS.Application.Interfaces
         Task<IEnumerable<TournamentResponseDTO>> GetTournamentsAsync();
         Task<IEnumerable<TournamentResponseDTO>> GetTournamentsByStatus(TournamentStatus status);
         Task<TournamentResponseDTO?> GetTournamentByIdAsync(int idTournament);
-        Task<TournamentResponseDTO> CreateTournamentAsync(CreateTournamentRequest tournamentDTO);
+        Task<TournamentResponseDTO> CreateTournamentAsync(CreateTournamentRequest tournamentDTO, int idUser);
         Task<CreatePrizeDTO> CreatePrizeAndAssignToTournament(CreatePrizeDTO prize, int idTournament, int idUser);
         //Task UpdateTournament(TournamentCreatedDTO tournamentDTO, int idTournament);
         //Task DeleteTournament(int idTournament);

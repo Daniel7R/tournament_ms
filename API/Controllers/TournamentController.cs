@@ -35,7 +35,6 @@ namespace TournamentMS.API.Controllers
             ResponseDTO<ModelStateDictionary?> _responseErrorDTO = new();
             if (!ModelState.IsValid)
             {
-                _responseErrorDTO.IsSuccess = false;
                 _responseErrorDTO.Result = ModelState;
                 return BadRequest(_responseErrorDTO);
             }
@@ -46,20 +45,18 @@ namespace TournamentMS.API.Controllers
                 if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
 
                 tournamentCreated.CreatedBy = Convert.ToInt32(user);
-                var tournament = await _tournamentService.CreateTournamentAsync(tournamentCreated);
+                var tournament = await _tournamentService.CreateTournamentAsync(tournamentCreated, Convert.ToInt32(user));
                 _responseDTO.Result = tournament;
 
                 return Ok(_responseDTO);
             }
             catch (BusinessRuleException bre)
             {
-                _responseErrorDTO.IsSuccess = false;
                 _responseErrorDTO.Message = bre.Message;
                 return BadRequest(_responseErrorDTO);
             }
             catch (Exception ex)
             {
-                _responseErrorDTO.IsSuccess = false;
                 _responseErrorDTO.Message = ex.Message;
                 return BadRequest(_responseErrorDTO);
             }
@@ -82,7 +79,6 @@ namespace TournamentMS.API.Controllers
             }
             catch (Exception ex)
             {
-                _responseDTO.IsSuccess = false;
                 _responseDTO.Message = ex.Message;
                 return BadRequest(_responseDTO);
             }
@@ -100,7 +96,6 @@ namespace TournamentMS.API.Controllers
 
             if (tournament == null)
             {
-                _responseDTO.IsSuccess = false;
                 _responseDTO.Message = "Not tournament found";
                 return NotFound(_responseDTO);
             }
@@ -121,9 +116,10 @@ namespace TournamentMS.API.Controllers
         }
 
         [HttpPost]
-        [Route("tournaments/{id}/prize")]
+        [Route("tournaments/{idTournament}/prize")]
         [ProducesResponseType(200, Type = typeof(ResponseDTO<CreatePrizeDTO?>))]
         [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
+        [ProducesResponseType(401, Type = typeof(ResponseDTO<string?>))]
         public async Task<IActionResult> AssignTournamentPrize(int idTournament, [FromBody] CreatePrizeDTO prize)
         {
             var response = new ResponseDTO<CreatePrizeDTO>();
@@ -134,7 +130,7 @@ namespace TournamentMS.API.Controllers
                 int idUser = Convert.ToInt32(user);
 
                 CreatePrizeDTO prizeCreated = await _tournamentService.CreatePrizeAndAssignToTournament(prize, idTournament, idUser);
-                
+                response.Message = "Successfully assigned";
                 return Ok(response);
             }
             catch (BusinessRuleException ex) 
@@ -142,6 +138,10 @@ namespace TournamentMS.API.Controllers
                 response.Message = ex.Message;
 
                 return BadRequest(response);
+            } catch(InvalidRoleException re)
+            {
+                response.Message = re.Message;
+                return Unauthorized(response);
             }
         }
 

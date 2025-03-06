@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TournamentMS.Domain.Entities;
+using TournamentMS.Domain.Enums;
 using TournamentMS.Infrastructure.Data;
 
 namespace TournamentMS.Infrastructure.Repository
@@ -40,9 +41,18 @@ namespace TournamentMS.Infrastructure.Repository
             return await _context.UserRoles.Where(tr => tr.IdTournament == idTournament).ToListAsync();
         }
 
-        public Task<TournamentUserRole> GetUserRole(int userId, int idEvent)
+        public async Task<TournamentUserRole> GetUserRole(int userId, int idEvent, EventType type)
         {
-            throw new NotImplementedException();
+            TournamentUserRole userRole = new TournamentUserRole();
+            if (type.Equals(EventType.TOURNAMENT))
+            {
+                userRole = await _context.UserRoles.Where(ur => ur.IdUser== userId && ur.IdTournament == idEvent).FirstOrDefaultAsync();
+            } else
+            {
+                userRole = await _context.UserRoles.Where(ur => ur.IdUser == userId && ur.IdMatch== idEvent).FirstOrDefaultAsync();
+            }
+
+            return userRole;
         }
 
         public async Task UpdateAsync(TournamentUserRole entity)

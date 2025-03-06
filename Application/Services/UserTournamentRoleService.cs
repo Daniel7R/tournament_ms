@@ -64,10 +64,10 @@ namespace TournamentMS.Application.Services
 
         private async Task IsAdminTournament(int idUser, int idEvent) 
         {
-            var response = await _userRoleRepo.GetUserRole(idUser, idEvent);
+            var response = await _userRoleRepo.GetUserRole(idUser, idEvent, EventType.TOURNAMENT);
             //only admin can assign subadmins
-            if (response == null && !response.Role.Equals(TournamentRoles.ADMIN)) throw new BusinessRuleException("User is not tournament admin");
-        
+            if (response == null && !response.Role.Equals(TournamentRoles.ADMIN)) throw new InvalidRoleException("User has no permissions");
+
         }
 
         private async Task IsAlreadyTwoSubadmin(int idTournament)

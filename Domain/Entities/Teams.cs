@@ -7,5 +7,6 @@
         public int IdGame { get; set; }
         public string Name { get; set; }
         public bool IsFull { get; set; } = false;
+        public IEnumerable<TeamsMembers> Members { get; set; }
     }
 }
