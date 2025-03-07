@@ -6,6 +6,7 @@ using TournamentMS.Application.Mapping;
 using TournamentMS.Application.Service;
 using TournamentMS.Application.Services;
 using TournamentMS.Infrastructure.Auth;
+using TournamentMS.Infrastructure.BackgroundJobs;
 using TournamentMS.Infrastructure.Data;
 using TournamentMS.Infrastructure.EventBus;
 using TournamentMS.Infrastructure.Repository;
@@ -43,6 +44,7 @@ builder.Services.AddScoped<ITournamentValidations, TournamentService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITeamsService, TeamsService>();
+builder.Services.AddSingleton<IReminderService, ReminderService>();
 builder.Services.AddAutoMapper(typeof(Mapper));
 
 builder.Services.AddScoped<TeamMembershandler>();
@@ -54,6 +56,7 @@ builder.Services.AddSingleton<IEventBusConsumer, EventBusConsumer>();
 
 builder.Services.AddHostedService<EventBusProducer>();
 builder.Services.AddHostedService<EventBusConsumer>();
+builder.Services.AddHostedService<ReminderBackgroundService>();
 
 /*
 builder.Services.AddHttpClient<UserService>(client =>

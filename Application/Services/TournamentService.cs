@@ -74,7 +74,7 @@ namespace TournamentMS.Application.Service
             var tournamentTextType = tournament.IsFree == true ? "free" : "paid";
             var payload = new EmailBulkNotificationRequest
             {
-                Body = $"Brace yourself! {tournament.Name} is here! With ID {tournament.Id} and game {game.Name}, {tournament.Description}!🚀🚀🚀",
+                Body = $"Brace yourself! {tournament.Name} is here since {tournament.StartDate} to {tournament.EndDate}! With ID {tournament.Id} and game {game.Name}, {tournament.Description}!🚀🚀🚀",
                 Subject = "🎮New Gaming Hype🎮"
             };
             //send all system users email
@@ -107,7 +107,7 @@ namespace TournamentMS.Application.Service
             //make validations and return category and service that would be used
             if (tournamentDTO.Name.IsNullOrEmpty()) throw new BusinessRuleException("Tournament name is required");
 
-            if (tournamentDTO.StartDate <= DateTime.UtcNow.AddHours(5)) throw new BusinessRuleException("StartDate can't be in past");
+            if (tournamentDTO.StartDate <= DateTime.UtcNow.AddHours(-5)) throw new BusinessRuleException("StartDate can't be in past");
             if (tournamentDTO.StartDate >= tournamentDTO.EndDate) throw new BusinessRuleException("StartDate must be before EndDate");
 
             var categoryExists = await _categoryRepository.GetByIdAsync(tournamentDTO.IdCategory);
