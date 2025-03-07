@@ -13,6 +13,7 @@
         public const string GET_TOURNAMENT_INFO = "tournament.info";
         public const string GET_MATCH_INFO = "match.info";
         public const string GET_TOURNAMENT_BY_ID = "tournament.by_id";
+        public const string ASSIGN_TEAM = "team.assign";
         //NOTIFICATIONS
         public const string SEND_EMAIL_CREATE_TOURNAMENT= "tournament.created";
     }

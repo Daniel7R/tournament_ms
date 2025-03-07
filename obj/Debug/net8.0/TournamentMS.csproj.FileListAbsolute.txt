@@ -10,6 +10,7 @@ C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Azure.Core.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Azure.Identity.dll
+C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\DotNetEnv.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Humanizer.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Microsoft.AspNetCore.Cryptography.Internal.dll
@@ -57,6 +58,7 @@ C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Npgsql.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\RabbitMQ.Client.dll
+C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Sprache.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
@@ -180,5 +182,3 @@ C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.pdb
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.genruntimeconfig.cache
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\ref\TournamentMS.dll
-C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\DotNetEnv.dll
-C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Sprache.dll

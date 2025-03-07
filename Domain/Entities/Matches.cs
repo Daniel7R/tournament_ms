@@ -12,6 +12,6 @@ namespace TournamentMS.Domain.Entities
         public int IdTeamWinner {  get; set; }
         public Teams TeamWinner {  get; set; }
         public DateTime Date { get; set; }
-        public string Status {  get; set; } = MatchStatus.PENDING;
+        public MatchStatus Status {  get; set; } = MatchStatus.PENDING;
     }
 }

@@ -18,6 +18,7 @@ namespace TournamentMS.Application.Service
         private readonly ITournamentUserRoleRepository _userTournamentRole;
         private readonly ITournamentRepository _tournamentRepository;
         private readonly IPrizeService _prizeService;
+        private readonly ITeamsService _teamsService;
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<Game> _gameRepository;
         private readonly IEventBusProducer _eventBusProducer;
@@ -27,9 +28,14 @@ namespace TournamentMS.Application.Service
         private int LIMIT_FREE_VIEWERS;
 
         //public TournamentService(IRepository<Tournament> tournamentRepository, IRepository<Game> gameRepository, IRepository<Category> categoryRepository, IMapper mapper)
-        public TournamentService(ITournamentRepository tournamentRepository, ITournamentUserRoleRepository repoUserRole, IRepository<Game> gameRepository, IRepository<Category> categoryRepository, IMapper mapper,IEventBusProducer eventBus, IPrizeService prizeService)
+        public TournamentService(
+            ITournamentRepository tournamentRepository, ITournamentUserRoleRepository repoUserRole, 
+            IRepository<Game> gameRepository, IRepository<Category> categoryRepository, 
+            IMapper mapper,IEventBusProducer eventBus, 
+            IPrizeService prizeService, ITeamsService teamsService)
         {
             _tournamentRepository = tournamentRepository;
+            _teamsService = teamsService;
             _categoryRepository = categoryRepository;
             _gameRepository = gameRepository;
             _mapper = mapper;
@@ -39,39 +45,43 @@ namespace TournamentMS.Application.Service
         }
         public async Task<TournamentResponseDTO> CreateTournamentAsync(CreateTournamentRequest tournamentDTO, int idUser)
         {
-            if (tournamentDTO.Name.IsNullOrEmpty()) throw new BusinessRuleException("Tournament name is required");
-
-            if (tournamentDTO.StartDate <= DateTime.UtcNow.AddHours(5)) throw new BusinessRuleException("StartDate can't be in past");
-            if (tournamentDTO.StartDate >= tournamentDTO.EndDate) throw new BusinessRuleException("StartDate must be before EndDate");
-            
-            var categoryExists = await _categoryRepository.GetByIdAsync(tournamentDTO.IdCategory);
-            if (categoryExists == null) throw new BusinessRuleException("Category does not exist");
-            
-            var gameExists = await _gameRepository.GetByIdAsync(tournamentDTO.IdGame);
-            if (gameExists == null) throw new BusinessRuleException("Game does not exits");
-
-            if(tournamentDTO.CreatedBy == 0) throw new BusinessRuleException($"User can't be null");
-            var isReachedLimitFree = await UserHasAlreadyFreeTournaments(tournamentDTO.CreatedBy);
-            if (tournamentDTO.IsFree == true && isReachedLimitFree == true) throw new BusinessRuleException($"User has already created {LIMIT_FREE_TOURNAMENTS} free tournament(s)");
+            (Category categoryExists, Game gameExists) categoryAndGame = await ValidationsDateCategoryGame(tournamentDTO);
             
             var tournament = _mapper.Map<Tournament>(tournamentDTO);
 
             var response = await _tournamentRepository.AddAsync(tournament);
             var tournamentResponse = _mapper.Map<TournamentResponseDTO>(response);
             //depending on category, limit free participants
+            tournamentResponse.MaxPlayers = categoryAndGame.gameExists.Players;
             if(tournamentResponse.IsFree == true)
             {
-                tournamentResponse.MaxPlayers = categoryExists.LimitParticipant;
+                tournamentResponse.MaxPlayers = categoryAndGame.categoryExists.LimitParticipant;
             }
-            tournamentResponse.MaxPlayers = categoryExists.LimitParticipant;
-            var generateTickets = new GenerateParticipantsTicketRequest
+            
+            await GenerateUserRole(tournament, idUser);
+
+            await GenerateTickets(tournament, tournamentResponse.MaxPlayers);
+            
+            //once created tournament generate teams
+            await _teamsService.GenerateTeams(categoryAndGame.gameExists, tournament.Id);
+
+            await SendEmailTournament(tournament, categoryAndGame.gameExists);
+            return tournamentResponse;
+        }
+
+        private async Task SendEmailTournament(Tournament tournament, Game game)
+        {
+            var tournamentTextType = tournament.IsFree == true ? "free" : "paid";
+            var payload = new EmailBulkNotificationRequest
             {
-                IdTournament = tournament.Id,
-                IsFree = tournament.IsFree,
-                QuantityTickets = tournamentResponse.MaxPlayers
+                Body = $"Brace yourself! {tournament.Name} is here! With ID {tournament.Id} and game {game.Name}, {tournament.Description}!🚀🚀🚀",
+                Subject = "🎮New Gaming Hype🎮"
             };
-            //Genero 
-            await _eventBusProducer.PublishEventAsync<GenerateParticipantsTicketRequest>(generateTickets, Queues.Queues.GENERATE_PARTICIPANTS_TICKETS_ASYNC);
+            //send all system users email
+            await _eventBusProducer.PublishEventAsync<EmailBulkNotificationRequest>(payload, Queues.Queues.SEND_EMAIL_CREATE_TOURNAMENT);
+        }
+        private async Task GenerateUserRole(Tournament tournament, int idUser)
+        {
             //assigAdmin role to creator
             TournamentUserRole userRoleAdmin = new TournamentUserRole
             {
@@ -80,16 +90,37 @@ namespace TournamentMS.Application.Service
                 Role = TournamentRoles.ADMIN
             };
             await _userTournamentRole.AddAsync(userRoleAdmin);
-
-            var tournamentTextType = tournament.IsFree == true ? "free" : "paid";
-            var payload = new EmailBulkNotificationRequest
+        }
+        private async Task GenerateTickets(Tournament tournament, int quantity)
+        {
+            var generateTickets = new GenerateParticipantsTicketRequest
             {
-                Body = $"Tournament {tournament.Name} with id {tournament.Id} and it's {tournamentTextType}!",
-                Subject = "Tournament Creation"
+                IdTournament = tournament.Id,
+                IsFree = tournament.IsFree,
+                QuantityTickets = quantity
             };
+            //Genero 
+            await _eventBusProducer.PublishEventAsync<GenerateParticipantsTicketRequest>(generateTickets, Queues.Queues.GENERATE_PARTICIPANTS_TICKETS_ASYNC);
+        }
+        private async Task<(Category, Game)> ValidationsDateCategoryGame(CreateTournamentRequest tournamentDTO)
+        {
+            //make validations and return category and service that would be used
+            if (tournamentDTO.Name.IsNullOrEmpty()) throw new BusinessRuleException("Tournament name is required");
 
-            await _eventBusProducer.PublishEventAsync<EmailBulkNotificationRequest>(payload, Queues.Queues.SEND_EMAIL_CREATE_TOURNAMENT);
-            return tournamentResponse;
+            if (tournamentDTO.StartDate <= DateTime.UtcNow.AddHours(5)) throw new BusinessRuleException("StartDate can't be in past");
+            if (tournamentDTO.StartDate >= tournamentDTO.EndDate) throw new BusinessRuleException("StartDate must be before EndDate");
+
+            var categoryExists = await _categoryRepository.GetByIdAsync(tournamentDTO.IdCategory);
+            if (categoryExists == null) throw new BusinessRuleException("Category does not exist");
+
+            var gameExists = await _gameRepository.GetByIdAsync(tournamentDTO.IdGame);
+            if (gameExists == null) throw new BusinessRuleException("Game does not exits");
+
+            if (tournamentDTO.CreatedBy == 0) throw new BusinessRuleException($"User can't be null");
+            var isReachedLimitFree = await UserHasAlreadyFreeTournaments(tournamentDTO.CreatedBy);
+            if (tournamentDTO.IsFree == true && isReachedLimitFree == true) throw new BusinessRuleException($"User has already created {LIMIT_FREE_TOURNAMENTS} free tournament(s)");
+
+            return (categoryExists, gameExists);
         }
 
         public async Task<TournamentResponseDTO?> GetTournamentByIdAsync(int idTournament)

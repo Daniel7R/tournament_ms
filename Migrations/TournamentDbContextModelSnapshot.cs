@@ -207,22 +207,31 @@ namespace TournamentMS.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("IdGame")
-                        .HasColumnType("integer");
+                    b.Property<int>("CurrentMembers")
+                        .HasColumnType("integer")
+                        .HasColumnName("current_members");
 
                     b.Property<int>("IdTournament")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id_tournament");
 
                     b.Property<bool>("IsFull")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_full");
+
+                    b.Property<int>("MaxMembers")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_members");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.HasKey("Id");
 
@@ -272,12 +281,9 @@ namespace TournamentMS.Migrations
                     b.Property<int>("IdUser")
                         .HasColumnType("integer");
 
-                    b.Property<int>("TeamId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("TeamId");
+                    b.HasIndex("IdTeam");
 
                     b.ToTable("teams_members", (string)null);
                 });
@@ -416,8 +422,8 @@ namespace TournamentMS.Migrations
             modelBuilder.Entity("TournamentMS.Domain.Entities.TeamsMembers", b =>
                 {
                     b.HasOne("TournamentMS.Domain.Entities.Teams", "Team")
-                        .WithMany()
-                        .HasForeignKey("TeamId")
+                        .WithMany("Members")
+                        .HasForeignKey("IdTeam")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -472,6 +478,11 @@ namespace TournamentMS.Migrations
                 {
                     b.Navigation("Tournament")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TournamentMS.Domain.Entities.Teams", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("TournamentMS.Domain.Entities.Tournament", b =>

@@ -1,5 +1,6 @@
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
+using TournamentMS.Application.EventHandler;
 using TournamentMS.Application.Interfaces;
 using TournamentMS.Application.Mapping;
 using TournamentMS.Application.Service;
@@ -36,11 +37,15 @@ builder.Services.AddScoped<IPrizeService, PrizeService>();
 builder.Services.AddScoped<IUserTournamentRoleService, UserTournamentRoleService>();
 builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
 builder.Services.AddScoped<ITournamentUserRoleRepository, TournamentUserRoleRepository>();
+builder.Services.AddScoped<ITeamsRepository, TeamsRepository>();
 builder.Services.AddScoped<ITournamentService, TournamentService>();
 builder.Services.AddScoped<ITournamentValidations, TournamentService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ITeamsService, TeamsService>();
 builder.Services.AddAutoMapper(typeof(Mapper));
+
+builder.Services.AddScoped<TeamMembershandler>();
 
 
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQ"));

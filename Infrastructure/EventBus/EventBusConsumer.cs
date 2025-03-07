@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
+using TournamentMS.Application.EventHandler;
 using TournamentMS.Application.Interfaces;
 using TournamentMS.Application.Messages.Request;
 using TournamentMS.Application.Messages.Response;
@@ -19,11 +20,13 @@ namespace TournamentMS.Infrastructure.EventBus
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly RabbitMQSettings _rabbitmqSettings;
         private readonly Dictionary<string, Func<string, Task<string>>> _handlers;
+        private readonly Dictionary<string, Func<string, Task>> _eventHandlers;
 
         public EventBusConsumer(IServiceScopeFactory serviceScopeFactory, IOptions<RabbitMQSettings> options): base(options)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _handlers = new();
+            _eventHandlers = new();
             InitializeAsync().GetAwaiter().GetResult();
         }
 
@@ -44,6 +47,19 @@ namespace TournamentMS.Infrastructure.EventBus
 
         private void RegisterHandlers()
         {
+            _ = Task.Run(async() =>
+            {
+                await RegisterEventHandlerAsync<AssignTeamMemberRequest>(Queues.ASSIGN_TEAM, async (request) =>
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+
+                    var handler = scope.ServiceProvider.GetRequiredService<TeamMembershandler>();
+
+                    await handler.AssignTeamMemberHandler(request);
+                });
+            });
+
+
             RegisterQueueHandler<GetTournamentById, GetTournamentByIdResponse>(Queues.GET_TOURNAMENT_BY_ID, async (request) =>
             {
                 using (IServiceScope scope = _serviceScopeFactory.CreateScope())
@@ -74,7 +90,7 @@ namespace TournamentMS.Infrastructure.EventBus
                         IdMatch = match?.Id ?? 0,
                         Date = match.Date,
                         Name =match.Name,
-                        Status = match.Status?? string.Empty
+                        Status = match.Status.ToString()
                     };
                 }
             });
@@ -127,5 +143,56 @@ namespace TournamentMS.Infrastructure.EventBus
             };
             _channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer).Wait();
         }
+
+        /// <summary>
+        ///     Register an async Event queue manager
+        /// </summary>
+        /// <typeparam name="TEvent"></typeparam>
+        /// <param name="queueName"></param>
+        /// <param name="handler"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public async Task RegisterEventHandlerAsync<TEvent>(string queueName, Func<TEvent, Task> handler)
+        {
+            if (_connection == null || !_connection.IsOpen || _channel == null || !_channel.IsOpen)
+            {
+                await InitializeAsync();
+            }
+
+            await _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, null);
+            await _channel.BasicQosAsync(0, 1, false);
+
+            _eventHandlers[queueName] = async (message) =>
+            {
+                var @event = JsonConvert.DeserializeObject<TEvent>(message);
+                await handler(@event);
+            };
+
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            consumer.ReceivedAsync += async (sender, ea) =>
+            {
+                var body = ea.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+
+                try
+                {
+                    if (_eventHandlers.TryGetValue(ea.RoutingKey, out var handlerAsync))
+                    {
+                        await handlerAsync(message);
+                    }
+                    await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
+
+                }
+                catch (Exception ex)
+                {
+                    if (!_connection.IsOpen)
+                    {
+                        await InitializeAsync();
+                    }
+                    await _channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: true);
+                }
+            };
+            await _channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer);
+        }
+
     }
 }

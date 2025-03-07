@@ -46,6 +46,21 @@ namespace TournamentMS.Infrastructure.Data
             modelBuilder.Entity<Tournament>().Property(t => t.Status).HasColumnName("tournament_status").HasConversion(new EnumToStringConverter<TournamentStatus>());
             modelBuilder.Entity<Tournament>().Property(t => t.IdPrize).HasColumnName("id_prize");
 
+            modelBuilder.Entity<Teams>()
+                .Property(t => t.Id)
+                .HasColumnName("id");
+            modelBuilder.Entity<Teams>()
+                .Property(t => t.IdTournament)
+                .HasColumnName("id_tournament");
+            modelBuilder.Entity<Teams>()
+                .Property(t => t.Name)
+                .HasColumnName("name");
+            modelBuilder.Entity<Teams>().Property(t => t.CurrentMembers).HasColumnName("current_members");
+            modelBuilder.Entity<Teams>().Property(t => t.MaxMembers).HasColumnName("max_members");
+            modelBuilder.Entity<Teams>()
+                .Property(t => t.IsFull)
+                .HasColumnName("is_full");
+
             modelBuilder.Entity<Category>().Property(c => c.Id).HasColumnName("id").ValueGeneratedOnAdd();
             modelBuilder.Entity<Category>().Property(c => c.Name).HasColumnName("name");
             modelBuilder.Entity<Category>().Property(c => c.Alias).HasColumnName("alias");
@@ -72,9 +87,13 @@ namespace TournamentMS.Infrastructure.Data
 
             modelBuilder.Entity<Matches>().HasKey(m => m.Id);
             modelBuilder.Entity<Matches>().Property(m => m.Id).HasColumnName("id").ValueGeneratedOnAdd();
-            modelBuilder.Entity<Matches>().Property(m => m.Status).HasColumnName("status");
+            modelBuilder.Entity<Matches>().Property(m => m.Status).HasColumnName("status").HasConversion<string>();
             modelBuilder.Entity<Matches>().Property(m => m.IdTournament).HasColumnName("id_tournament");
 
+            modelBuilder.Entity<TeamsMembers>()
+                .HasOne(tm=> tm.Team)
+                .WithMany(tm => tm.Members)
+                .HasForeignKey(tm => tm.IdTeam);
 
             // <---To make sure does not repeat category
             modelBuilder.Entity<Category>()
@@ -122,7 +141,7 @@ namespace TournamentMS.Infrastructure.Data
                 Name = "Carreras",
                 Code= "0235",
                 Alias= "Racing",
-                LimitParticipant= 20
+                LimitParticipant= 10
             });
             modelBuilder.Entity<Category>().HasData(new Category
             {
@@ -130,7 +149,7 @@ namespace TournamentMS.Infrastructure.Data
                 Name = "Estrategia",
                 Code = "0236",
                 Alias = "Strategy",
-                LimitParticipant = 60
+                LimitParticipant = 10
             });
 
             modelBuilder.Entity<Game>().HasData(new Game {Id=1, Name = "Need For Speed", Players = 10, IsCooperative= false, MaxTeams=10, MaxPlayersPerTeam=1 });

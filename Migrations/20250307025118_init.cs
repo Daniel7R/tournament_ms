@@ -23,7 +23,7 @@ namespace TournamentMS.Migrations
                     name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     code = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     alias = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    LimitParticipant = table.Column<int>(type: "integer", nullable: true)
+                    LimitParticipant = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -48,19 +48,32 @@ namespace TournamentMS.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "teams",
+                name: "prizes",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    IdTournament = table.Column<int>(type: "integer", nullable: false),
-                    IdGame = table.Column<int>(type: "integer", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    IsFull = table.Column<bool>(type: "boolean", nullable: false)
+                    description = table.Column<string>(type: "text", nullable: false),
+                    total = table.Column<double>(type: "double precision", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_teams", x => x.Id);
+                    table.PrimaryKey("PK_prizes", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "teams",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    id_tournament = table.Column<int>(type: "integer", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    is_full = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_teams", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -79,7 +92,7 @@ namespace TournamentMS.Migrations
                     end_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     tournament_status = table.Column<string>(type: "text", nullable: false),
                     id_team_winner_tournmanent = table.Column<int>(type: "integer", nullable: true),
-                    id_prize = table.Column<int>(type: "integer", nullable: false)
+                    id_prize = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -96,6 +109,11 @@ namespace TournamentMS.Migrations
                         principalTable: "games",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_tournaments_prizes_id_prize",
+                        column: x => x.id_prize,
+                        principalTable: "prizes",
+                        principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
@@ -105,17 +123,16 @@ namespace TournamentMS.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     IdTeam = table.Column<int>(type: "integer", nullable: false),
-                    TeamId = table.Column<int>(type: "integer", nullable: false),
                     IdUser = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_teams_members", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_teams_members_teams_TeamId",
-                        column: x => x.TeamId,
+                        name: "FK_teams_members_teams_IdTeam",
+                        column: x => x.IdTeam,
                         principalTable: "teams",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -140,31 +157,11 @@ namespace TournamentMS.Migrations
                         name: "FK_matches_teams_TeamWinnerId",
                         column: x => x.TeamWinnerId,
                         principalTable: "teams",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_matches_tournaments_id_tournament",
                         column: x => x.id_tournament,
-                        principalTable: "tournaments",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "prizes",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false),
-                    IdTournament = table.Column<int>(type: "integer", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    Total = table.Column<double>(type: "double precision", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_prizes", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_prizes_tournaments_Id",
-                        column: x => x.Id,
                         principalTable: "tournaments",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -176,11 +173,12 @@ namespace TournamentMS.Migrations
                 {
                     id_tournament = table.Column<int>(type: "integer", nullable: false),
                     id_user = table.Column<int>(type: "integer", nullable: false),
-                    id_role = table.Column<int>(type: "integer", nullable: false)
+                    role = table.Column<string>(type: "text", nullable: false),
+                    IdMatch = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_tournaments_users_roles", x => new { x.id_user, x.id_tournament, x.id_role });
+                    table.PrimaryKey("PK_tournaments_users_roles", x => new { x.id_user, x.id_tournament, x.role });
                     table.ForeignKey(
                         name: "FK_tournaments_users_roles_tournaments_id_tournament",
                         column: x => x.id_tournament,
@@ -213,7 +211,7 @@ namespace TournamentMS.Migrations
                         name: "FK_teams_matches_teams_TeamId",
                         column: x => x.TeamId,
                         principalTable: "teams",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -231,9 +229,27 @@ namespace TournamentMS.Migrations
                 columns: new[] { "id", "IsCooperative", "MaxPlayersPerTeam", "MaxTeams", "name", "players" },
                 values: new object[,]
                 {
-                    { 1, false, 10, 10, "Need For Speed", 10 },
+                    { 1, false, 1, 10, "Need For Speed", 10 },
                     { 2, true, 5, 2, "League Of Legends", 10 }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_categories_alias",
+                table: "categories",
+                column: "alias",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_categories_code",
+                table: "categories",
+                column: "code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_categories_name",
+                table: "categories",
+                column: "name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_matches_id_tournament",
@@ -256,9 +272,9 @@ namespace TournamentMS.Migrations
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_teams_members_TeamId",
+                name: "IX_teams_members_IdTeam",
                 table: "teams_members",
-                column: "TeamId");
+                column: "IdTeam");
 
             migrationBuilder.CreateIndex(
                 name: "IX_tournaments_id_category",
@@ -271,6 +287,12 @@ namespace TournamentMS.Migrations
                 column: "id_game");
 
             migrationBuilder.CreateIndex(
+                name: "IX_tournaments_id_prize",
+                table: "tournaments",
+                column: "id_prize",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_tournaments_users_roles_id_tournament",
                 table: "tournaments_users_roles",
                 column: "id_tournament");
@@ -279,9 +301,6 @@ namespace TournamentMS.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "prizes");
-
             migrationBuilder.DropTable(
                 name: "teams_matches");
 
@@ -305,6 +324,9 @@ namespace TournamentMS.Migrations
 
             migrationBuilder.DropTable(
                 name: "games");
+
+            migrationBuilder.DropTable(
+                name: "prizes");
         }
     }
 }
