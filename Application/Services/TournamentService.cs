@@ -29,9 +29,9 @@ namespace TournamentMS.Application.Service
 
         //public TournamentService(IRepository<Tournament> tournamentRepository, IRepository<Game> gameRepository, IRepository<Category> categoryRepository, IMapper mapper)
         public TournamentService(
-            ITournamentRepository tournamentRepository, ITournamentUserRoleRepository repoUserRole, 
-            IRepository<Game> gameRepository, IRepository<Category> categoryRepository, 
-            IMapper mapper,IEventBusProducer eventBus, 
+            ITournamentRepository tournamentRepository, ITournamentUserRoleRepository repoUserRole,
+            IRepository<Game> gameRepository, IRepository<Category> categoryRepository,
+            IMapper mapper, IEventBusProducer eventBus,
             IPrizeService prizeService, ITeamsService teamsService)
         {
             _tournamentRepository = tournamentRepository;
@@ -46,26 +46,32 @@ namespace TournamentMS.Application.Service
         public async Task<TournamentResponseDTO> CreateTournamentAsync(CreateTournamentRequest tournamentDTO, int idUser)
         {
             (Category categoryExists, Game gameExists) categoryAndGame = await ValidationsDateCategoryGame(tournamentDTO);
-            
+
             var tournament = _mapper.Map<Tournament>(tournamentDTO);
 
+            var createPrize = new CreatePrizeDTO { Total = tournamentDTO.Prize.Total, Description = tournamentDTO.Prize.Description };
+            var prize = await CreatePrizes(createPrize);
+
+            tournament.IdPrize = prize.Id;
             var response = await _tournamentRepository.AddAsync(tournament);
             var tournamentResponse = _mapper.Map<TournamentResponseDTO>(response);
             //depending on category, limit free participants
             tournamentResponse.MaxPlayers = categoryAndGame.gameExists.Players;
-            if(tournamentResponse.IsFree == true)
+            if (tournamentResponse.IsFree == true)
             {
                 tournamentResponse.MaxPlayers = categoryAndGame.categoryExists.LimitParticipant;
             }
-            
+
+
             await GenerateUserRole(tournament, idUser);
 
             await GenerateTickets(tournament, tournamentResponse.MaxPlayers);
-            
+
             //once created tournament generate teams
             await _teamsService.GenerateTeams(categoryAndGame.gameExists, tournament.Id);
 
             await SendEmailTournament(tournament, categoryAndGame.gameExists);
+
             return tournamentResponse;
         }
 
@@ -129,7 +135,7 @@ namespace TournamentMS.Application.Service
 
             if (tournament == null) return null;
             var tournamentResponse = _mapper.Map<TournamentResponseDTO>(tournament);
-                
+
             return tournamentResponse;
         }
 
@@ -138,10 +144,10 @@ namespace TournamentMS.Application.Service
             var tournaments = await _tournamentRepository.GetAllAsync();
 
             var tournamentsResponse = tournaments.Select(t => _mapper.Map<TournamentResponseDTO>(t)).ToList();
-                
+
             return tournamentsResponse;
         }
-        
+
         /// <summary>
         ///  This method validates if a user has already, if it's true user has already reach limit and cancel operation, otherwise it would create
         /// </summary>
@@ -152,26 +158,28 @@ namespace TournamentMS.Application.Service
             var request = await _tournamentRepository.GetFreeTournamentsByUserId(idUser);
             var hasAlreadyLimit = false;
 
-            if (request != null  && request.Count()== LIMIT_FREE_TOURNAMENTS)
+            if (request != null && request.Count() == LIMIT_FREE_TOURNAMENTS)
             {
                 hasAlreadyLimit = true;
             }
             return hasAlreadyLimit;
         }
 
-        public async Task<IEnumerable<TournamentResponseDTO>> GetTournamentsByStatus(TournamentStatus status)
+        public async Task<IEnumerable<FullTournamentResponse>> GetTournamentsByStatus(List<TournamentStatus> statuses)
         {
-            var tournaments = await _tournamentRepository.GetTournamentsByStatus(status);
+            var tournaments = await _tournamentRepository.GetFullTournamentInfo(statuses);
 
-            var tournamentResponse = _mapper.Map<IEnumerable<TournamentResponseDTO>>(tournaments).ToList();
+            var tournamentResponse = _mapper.Map<IEnumerable<FullTournamentResponse>>(tournaments).ToList();
 
-            if(tournamentResponse.Count() > 0)
+            if (tournamentResponse.Count() > 0)
             {
                 tournamentResponse.ForEach(t =>
                 {
                     var tournament = tournaments.FirstOrDefault(x => x.Id == t.Id);
                     if (tournament != null)
                     {
+                        t.PrizeDescription = tournament?.Prize.Description ?? null;
+                        t.TotalPrize = tournament?.Prize.Total ?? 0;
                         t.CategoryName = tournament.Category.Name;
                         t.GameName = tournament.Game.Name;
                         t.MaxPlayers = tournament.Category.LimitParticipant;
@@ -193,18 +201,73 @@ namespace TournamentMS.Application.Service
             if (tournament.IdPrize != null) throw new BusinessRuleException("Tournament already has a prize");
             //creation
             //  
-            Prizes prizeConverted = _mapper.Map<Prizes>(prize);
-            await _prizeService.CreatePrize(prizeConverted);
-
+            Prizes prizeConverted = await CreatePrizes(prize);
             int idPrize = prizeConverted.Id;
             await AssignPrizeTournament(idPrize, tournament);
 
             return _mapper.Map<CreatePrizeDTO>(prizeConverted);
         }
 
+        private async Task<Prizes> CreatePrizes(CreatePrizeDTO prize)
+        {
+            Prizes prizeConverted = _mapper.Map<Prizes>(prize);
+            await _prizeService.CreatePrize(prizeConverted);
+
+            return prizeConverted;
+        }
+
+        public async Task<bool> ChangeTournamentDate(int idUser, int idTournament, ChangeDatesRequest dates)
+        {
+            //validations tournament
+            var roleUser = await _userTournamentRole.GetUserRole(idUser, idTournament, EventType.TOURNAMENT);
+            if (roleUser==null || (!roleUser.Role.Equals(TournamentRoles.ADMIN) && !roleUser.Role.Equals(TournamentRoles.SUBADMIN))) throw new InvalidRoleException("User has no permissions");
+            
+            Tournament? tournament = await _tournamentRepository.GetByIdAsync(idTournament);
+            if (tournament == null) throw new BusinessRuleException("Tournament does not exist");
+            if (!tournament.Status.Equals(TournamentStatus.PENDING)) throw new BusinessRuleException("Tournament status is different from pending");
+
+
+            if (dates.StartDate <= DateTime.UtcNow.AddHours(-5)) throw new BusinessRuleException("StartDate can't be in past");
+            if (dates.StartDate >= dates.EndDate) throw new BusinessRuleException("StartDate must be before EndDate");
+
+            var isUpdated = await _tournamentRepository.ChangeDatesTournament(idTournament, dates);
+
+            if (isUpdated)
+            {
+                //new dates
+                tournament.StartDate = dates.StartDate;
+                tournament.EndDate = dates.EndDate;
+
+                var emailInfo = new EmailBulkNotificationRequest
+                {
+                    Subject = $"📢 Important Update: Tournament Date Changed!",
+                    Body = $"🚀 Exciting news! The tournament <b>{tournament.Name}</b> has been updated! 🎉<br><br>" +
+                           $"📅 <b>New Dates:</b> {tournament.StartDate:MMMM dd, yyyy} - {tournament.EndDate:MMMM dd, yyyy} <br><br>" +
+                           $"Make sure to update your schedule and get ready for the challenge! 🏆🔥"
+                };
+                await _eventBusProducer.PublishEventAsync<EmailBulkNotificationRequest>(emailInfo, Queues.Queues.SEND_EMAIL_UPDATE_TOURNAMENT);
+            }
+
+            return isUpdated;
+        }
+
         private async Task AssignPrizeTournament(int idPrize, Tournament tournament)
         {
             await _tournamentRepository.AssignPrizeTournament(idPrize, tournament);
+        }
+
+        public async Task<bool> UpdateTournamentStatus(ChangeTournamentStatus tournamentStatus, int idTournament,int idUser)
+        {
+            //validar usuario rol si puede
+            var roleUser = await _userTournamentRole.GetUserRole(idUser, idTournament, EventType.TOURNAMENT);
+            if (roleUser == null || !roleUser.Role.Equals(TournamentRoles.ADMIN)) throw new InvalidRoleException("User has no permissions");
+
+            Tournament? tournament = await _tournamentRepository.GetByIdAsync(idTournament);
+            if (tournament == null) throw new BusinessRuleException("Tournament does not exist");
+
+            var response = await _tournamentRepository.ChangeTournamentStatus(tournamentStatus.NewStatus, idTournament);
+
+            return response;
         }
     }
 }

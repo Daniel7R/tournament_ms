@@ -1,4 +1,5 @@
-﻿using TournamentMS.Application.Messages.Request;
+﻿using TournamentMS.Application.DTOs.Response;
+using TournamentMS.Application.Messages.Request;
 using TournamentMS.Domain.Entities;
 
 namespace TournamentMS.Application.Interfaces
@@ -16,5 +17,8 @@ namespace TournamentMS.Application.Interfaces
         /// </summary>
         /// <param name="request"></param>
         Task AssignTeamMember(AssignTeamMemberRequest request);
+        Task<IEnumerable<TeamsTournamentResponse>> GetFullInformationTeams(int idTournament);
+
+        Task<bool> AreValidTeamsInTournament(List<int> idsTournametns, int idTournament);
     }
 }

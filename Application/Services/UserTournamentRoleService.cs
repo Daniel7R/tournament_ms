@@ -59,6 +59,13 @@ namespace TournamentMS.Application.Services
                     tournamentUserRole.IdTournament= createUserRole.IdEvent;
                     break;
             }
+            await _userRoleRepo.AddAsync(tournamentUserRole);
+            //throw new NotImplementedException();
+        }
+
+        public Task AssignRoleUser(int idUser, EventType eventType, int idEvent, TournamentRoles role)
+        {
+
             throw new NotImplementedException();
         }
 

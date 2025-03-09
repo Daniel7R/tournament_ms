@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TournamentMS.Domain.Entities;
 using TournamentMS.Domain.Enums;
+using TournamentMS.Domain.Exceptions;
 using TournamentMS.Infrastructure.Data;
 
 namespace TournamentMS.Infrastructure.Repository
@@ -19,6 +20,39 @@ namespace TournamentMS.Infrastructure.Repository
             await _context.SaveChangesAsync();
 
             return entity;
+        }
+
+        public async Task AssignRoleUser(int idUser, EventType eventType, int idEvent, TournamentRoles role)
+        {
+            var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var userRole = new TournamentUserRole
+                {
+                    IdUser = idUser,
+                    Role = role,
+                };
+                if (eventType.Equals(EventType.TOURNAMENT))
+                {
+                    userRole.IdTournament = idEvent;
+                }else
+                {
+                    userRole.IdMatch = idEvent;
+                }
+
+                await _context.UserRoles.AddAsync(userRole);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw new BusinessRuleException("User role can't be setted");
+            }
+
+            throw new NotImplementedException();
         }
 
         public Task DeleteAsync(int id)

@@ -53,9 +53,17 @@ namespace TournamentMS.Infrastructure.EventBus
                 {
                     using var scope = _serviceScopeFactory.CreateScope();
 
-                    var handler = scope.ServiceProvider.GetRequiredService<TeamMembershandler>();
+                    var handler = scope.ServiceProvider.GetRequiredService<UsersTournamentHandler>();
 
                     await handler.AssignTeamMemberHandler(request);
+                });
+
+                await RegisterEventHandlerAsync<AssignViewerRole>(Queues.ASSIGN_ROLE_VIEWER, async (request) =>
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var handler = scope.ServiceProvider.GetRequiredService<UsersTournamentHandler>();
+
+                    await handler.AssignRoleViewer(request);
                 });
             });
 

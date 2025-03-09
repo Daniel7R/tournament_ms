@@ -12,5 +12,6 @@
         //prop for defined if a team has been deleted
         //public bool? IsActive { get; set; }
         public IEnumerable<TeamsMembers> Members { get; set; }
+        public IEnumerable<TeamsMatches> TeamsMatches { get; set; }
     }
 }

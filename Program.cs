@@ -1,5 +1,6 @@
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 using TournamentMS.Application.EventHandler;
 using TournamentMS.Application.Interfaces;
 using TournamentMS.Application.Mapping;
@@ -18,7 +19,10 @@ builder.Configuration.AddEnvironmentVariables();
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -39,15 +43,17 @@ builder.Services.AddScoped<IUserTournamentRoleService, UserTournamentRoleService
 builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
 builder.Services.AddScoped<ITournamentUserRoleRepository, TournamentUserRoleRepository>();
 builder.Services.AddScoped<ITeamsRepository, TeamsRepository>();
+builder.Services.AddScoped<IMatchesRepository, MatchesRepository>();
 builder.Services.AddScoped<ITournamentService, TournamentService>();
 builder.Services.AddScoped<ITournamentValidations, TournamentService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IMatchesService, MatchesService>();
 builder.Services.AddScoped<ITeamsService, TeamsService>();
 builder.Services.AddSingleton<IReminderService, ReminderService>();
 builder.Services.AddAutoMapper(typeof(Mapper));
 
-builder.Services.AddScoped<TeamMembershandler>();
+builder.Services.AddScoped<UsersTournamentHandler>();
 
 
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQ"));

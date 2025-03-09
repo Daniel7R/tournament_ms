@@ -43,7 +43,7 @@ namespace TournamentMS.Infrastructure.Repository
 
         public async Task<Teams?> GetByIdAsync(int id)
         {
-            return await _context.Teams.FirstOrDefaultAsync(t => t.Id == id);  
+            return await _context.Teams.FirstOrDefaultAsync(t => t.Id == id);
         }
 
         public async Task<Teams?> GetLowerMembersTeamByIdTournament(int id)
@@ -53,10 +53,55 @@ namespace TournamentMS.Infrastructure.Repository
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<bool> UserHasAlreadyTeam(int idUser, int idTournament)
+        {
+            var response = await _context.Teams.Where(t => t.IdTournament == idTournament)
+                .Include(t => t.Members)
+                .Where(tm => tm.Members.Any(m => m.IdUser == idUser)).CountAsync();
+            if (response > 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public async Task UpdateAsync(Teams entity)
         {
-            _context.Update(entity);
-            await _context.SaveChangesAsync();
+            var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.Update(entity);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+            }
+        }
+
+        /// <summary>
+        /// This method returns the teams with its members by tournament id
+        /// </summary>
+        /// <param name="idTournament"></param>
+        /// <returns></returns>
+        public async Task<List<Teams>> GetFullInfoTeams(int idTournament)
+        {
+            var response = await _context.Teams.Where(t => t.IdTournament == idTournament)
+                .Include(t => t.Members).ToListAsync();
+            
+            return response;
+        }
+
+        public async Task<bool> AreValidTeamsTournament(List<int> idsTeams,int idTournament)
+        {
+            var existingTeams = await _context.Teams.Where(team => 
+                team.IdTournament == idTournament && 
+                idsTeams.Contains(team.Id))
+                .Select(team => team.Id).ToListAsync();
+
+            return idsTeams.All(id => existingTeams.Contains(id));
         }
     }
 }

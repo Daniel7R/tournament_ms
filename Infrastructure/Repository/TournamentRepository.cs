@@ -1,15 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TournamentMS.Application.DTOs.Request;
 using TournamentMS.Domain.Entities;
 using TournamentMS.Domain.Enums;
 using TournamentMS.Infrastructure.Data;
 
 namespace TournamentMS.Infrastructure.Repository
 {
-    public class TournamentRepository :ITournamentRepository
+    public class TournamentRepository : ITournamentRepository
     {
         private readonly TournamentDbContext _context;
-        public TournamentRepository(TournamentDbContext context) 
-        { 
+        public TournamentRepository(TournamentDbContext context)
+        {
             _context = context;
         }
         public async Task<Tournament> AddAsync(Tournament entity)
@@ -63,7 +64,7 @@ namespace TournamentMS.Infrastructure.Repository
             return await _context.Tournaments
                 .Include(t => t.Game)
                 .Include(t => t.Category)
-                .Where(t => t.Status== status)
+                .Where(t => t.Status == status)
                 .ToListAsync();
         }
 
@@ -84,6 +85,59 @@ namespace TournamentMS.Infrastructure.Repository
             {
                 return false;
             }
+        }
+
+        public async Task<bool> ChangeDatesTournament(int idTournament, ChangeDatesRequest dates)
+        {
+            try
+            {
+
+                var tournament = await _context.Tournaments.FindAsync(idTournament);
+                tournament.StartDate = dates.StartDate;
+                tournament.EndDate = dates.EndDate;
+
+                _context.Tournaments.Attach(tournament);
+                _context.Entry(tournament).Property(t => t.StartDate).IsModified = true;
+                _context.Entry(tournament).Property(t => t.EndDate).IsModified = true;
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ChangeTournamentStatus(TournamentStatus status, int idTournament)
+        {
+            try
+            {
+
+                var tournament = await _context.Tournaments.FindAsync(idTournament);
+                tournament.Status = status;
+
+                _context.Tournaments.Attach(tournament);
+                _context.Entry(tournament).Property(t => t.Status).IsModified = true;
+
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+        }
+
+        public async Task<IEnumerable<Tournament>> GetFullTournamentInfo(List<TournamentStatus> statuses)
+        {
+            return await _context.Tournaments
+                .Include(t => t.Game)
+                .Include(t => t.Category)
+                .Include(t => t.Prize)
+                .Where(t => statuses.Contains(t.Status))
+                .ToListAsync();
         }
     }
 }

@@ -8,11 +8,12 @@ namespace TournamentMS.Application.Interfaces
         /// <summary>
         /// This will assign a specific role to a user
         /// </summary>
-        /// <param name="idUser">id of the user that the role would be assigned</param>
-        /// <param name="idEvent">Id of the event whethever it is(match or tournament)</param>
-        /// <param name="role">role to assign</param>
+        /// <param name="createUserRole"></param>
+        /// <param name="idUser"></param>
         /// <returns></returns>
         Task AssignRoleUser(CreateUserRoleDTO createUserRole, int idUser);
+
+        Task AssignRoleUser(int idUser, EventType eventType, int idEvent, TournamentRoles role);
 
     }
 }
