@@ -57,6 +57,14 @@ namespace TournamentMS.Application.Services
             return matchResponse;
         }
 
+        public async Task<MatchesResponseDTO> GetMatchById(int idMatch)
+        {
+            var match = await  _matchesRepo.GetMatchbyId(idMatch);
+            var resposne = _mapper.Map<MatchesResponseDTO>(match);
+
+            return resposne;
+        }
+
         public async Task<IEnumerable<MatchesResponseDTO>> GetMatchesByIdTournament(int idTournament)
         {
             var matchesTournament = await _matchesRepo.GetMatchesByIdTournament(idTournament);

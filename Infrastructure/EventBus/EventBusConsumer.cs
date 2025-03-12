@@ -67,6 +67,13 @@ namespace TournamentMS.Infrastructure.EventBus
                 });
             });
 
+            RegisterQueueHandler<ValidateMatchRoleUser, ValidateMatchRoleUserResponse>(Queues.VALIDATE_MATCH_AND_ROLE, async (request) =>
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var handler = scope.ServiceProvider.GetRequiredService<StreamsHandler>();
+
+                return await handler.ValidateRoleUserAndMatch(request);
+            });
 
             RegisterQueueHandler<GetTournamentById, GetTournamentByIdResponse>(Queues.GET_TOURNAMENT_BY_ID, async (request) =>
             {
@@ -81,6 +88,22 @@ namespace TournamentMS.Infrastructure.EventBus
                         IsFree = tournament?.IsFree ?? false,
                     };
                 }
+            });
+
+            RegisterQueueHandler<List<int>, IEnumerable<GetTournamentBulkResponse>>(Queues.GET_BULK_TOURNAMENTS, async (request) =>
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var handler = scope.ServiceProvider.GetRequiredService<TournamentHandler>();
+
+                return await handler.GetTournamentsByIds(request);
+            });
+
+            RegisterQueueHandler<int, bool>(Queues.IS_FREE_MATCH_TOURNAMENT, async(idMatch)=>
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var hander = scope.ServiceProvider.GetRequiredService<TournamentHandler>();
+
+                return await hander.IsFreeTournament(idMatch);
             });
 
             RegisterQueueHandler<int, GetMatchByIdResponse>(Queues.GET_MATCH_INFO, async (idMatch) =>

@@ -139,5 +139,10 @@ namespace TournamentMS.Infrastructure.Repository
                 .Where(t => statuses.Contains(t.Status))
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Tournament>> GetTournamentsByIds(List<int> ids)
+        {
+            return await _context.Tournaments.Where(t => ids.Contains(t.Id)).ToListAsync();
+        }
     }
 }

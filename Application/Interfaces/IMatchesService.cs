@@ -8,5 +8,6 @@ namespace TournamentMS.Application.Interfaces
     {
         Task<MatchesResponseDTO> CreateMatch(CreateMatchesRequestDTO match2Create, int idUser);
         Task<IEnumerable<MatchesResponseDTO>> GetMatchesByIdTournament(int idTournament);
+        Task<MatchesResponseDTO> GetMatchById(int idMatch);
     }
 }

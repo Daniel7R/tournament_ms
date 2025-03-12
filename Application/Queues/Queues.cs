@@ -10,6 +10,11 @@
 
         //tickets
         public const string ASSIGN_ROLE_VIEWER = "viewer.role";
+        public const string GET_BULK_TOURNAMENTS = "tournament.bulk.names";
+
+        //streams
+        public const string VALIDATE_MATCH_AND_ROLE = "match.role.user";
+        public const string IS_FREE_MATCH_TOURNAMENT = "tournament.validate";
 
         //to consume/process
         //public const string GET_TOURNAMENT_BY_ID = "tournament.by_id";

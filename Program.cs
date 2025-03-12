@@ -1,5 +1,6 @@
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 using TournamentMS.Application.EventHandler;
 using TournamentMS.Application.Interfaces;
@@ -27,6 +28,10 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "TournamentManagementMS API", Version = "v1" });
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
     c.SchemaFilter<EnumSchemaFilter>(); // Enables los enums as string
 });
 
@@ -53,12 +58,16 @@ builder.Services.AddScoped<ITeamsService, TeamsService>();
 builder.Services.AddSingleton<IReminderService, ReminderService>();
 builder.Services.AddAutoMapper(typeof(Mapper));
 
+builder.Services.AddScoped<TournamentHandler>();
 builder.Services.AddScoped<UsersTournamentHandler>();
-
+builder.Services.AddScoped<StreamsHandler>();
 
 builder.Services.Configure<RabbitMQSettings>(builder.Configuration.GetSection("RabbitMQ"));
 builder.Services.AddSingleton<IEventBusProducer, EventBusProducer>();
 builder.Services.AddSingleton<IEventBusConsumer, EventBusConsumer>();
+
+builder.Services.AddScoped<StreamsHandler>();
+
 
 builder.Services.AddHostedService<EventBusProducer>();
 builder.Services.AddHostedService<EventBusConsumer>();

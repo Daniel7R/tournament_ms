@@ -47,6 +47,11 @@ namespace TournamentMS.Infrastructure.Repository
             }
         }
 
+        public async Task<Matches> GetMatchbyId(int id)
+        {
+            return await _context.Matches.Where(t => t.Id == id).FirstOrDefaultAsync();
+        }
+
         public async Task<IEnumerable<Matches>> GetMatchesByIdTournament(int idTournament) => await _context.Matches.Where(match => match.IdTournament == idTournament).ToListAsync();
     }
 }

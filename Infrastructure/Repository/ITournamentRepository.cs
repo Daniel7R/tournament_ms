@@ -11,7 +11,7 @@ namespace TournamentMS.Infrastructure.Repository
         Task<IEnumerable<Tournament>> GetFreeTournamentsByUserId(int userId);
         Task<IEnumerable<Tournament>> GetTournamentsByStatus(TournamentStatus status);
         Task<bool> AssignPrizeTournament(int idPrize, Tournament tournament);
-
+        Task<IEnumerable<Tournament>> GetTournamentsByIds(List<int> ids);
         Task<bool> ChangeDatesTournament(int idTournament, ChangeDatesRequest dates);
         Task<IEnumerable<Tournament>> GetFullTournamentInfo(List<TournamentStatus> status);
         Task<bool> ChangeTournamentStatus(TournamentStatus status, int idTournament);
