@@ -11,6 +11,7 @@
         //tickets
         public const string ASSIGN_ROLE_VIEWER = "viewer.role";
         public const string GET_BULK_TOURNAMENTS = "tournament.bulk.names";
+        public const string MATCH_BELONGS_TOURNAMENT = "match.belongs.tournament";
 
         //streams
         public const string VALIDATE_MATCH_AND_ROLE = "match.role.user";

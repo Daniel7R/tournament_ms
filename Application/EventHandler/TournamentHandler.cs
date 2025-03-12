@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using TournamentMS.Application.Messages.Request;
 using TournamentMS.Application.Messages.Response;
 using TournamentMS.Infrastructure.Repository;
 
@@ -33,17 +34,34 @@ namespace TournamentMS.Application.EventHandler
             return getTournaments;
         }
 
-        public async Task<bool> IsFreeTournament(int idMatch)
+        public async Task<bool?> IsFreeTournament(int idMatch)
         {
             _logger.LogInformation($"Is free for match {idMatch}");
 
             var match = await _matchesRepository.GetMatchbyId(idMatch);
             //
+            if(match == null)
+            {
+                return null;
+            }
             _logger.LogInformation($"Match: {JsonConvert.SerializeObject(match)}");
             var tournament = await _repository.GetTournamentWithCategoriesAndGamesById(match.IdTournament);
             _logger.LogInformation($"");
 
-            return tournament?.IsFree ?? false;
+            return tournament?.IsFree;
+        }
+
+        public async Task<bool> MatchBelongsTournament(ValidateMatchTournament request)
+        {
+            _logger.LogInformation($"reques to validate if match belongs to tournament");
+            var match = await _matchesRepository.GetMatchbyId(request.IdMatch);
+
+            if(match != null && match.IdTournament == request.IdTournament)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -25,7 +25,7 @@ namespace TournamentMS.Infrastructure.BackgroundJobs
                 //implemente to execute
                 if (now.Hour == 0 && now.Minute == 1) // execute at midnight
                 {
-                    await _reminderService.SendReminder();
+                  await _reminderService.SendReminder();
                 }
 
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
