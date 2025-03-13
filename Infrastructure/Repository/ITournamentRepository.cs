@@ -15,5 +15,6 @@ namespace TournamentMS.Infrastructure.Repository
         Task<bool> ChangeDatesTournament(int idTournament, ChangeDatesRequest dates);
         Task<IEnumerable<Tournament>> GetFullTournamentInfo(List<TournamentStatus> status);
         Task<bool> ChangeTournamentStatus(TournamentStatus status, int idTournament);
+        Task<IEnumerable<Tournament>> GetTournamentsAndMatchesCurrentDay();
     }
 }

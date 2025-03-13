@@ -267,6 +267,11 @@ namespace TournamentMS.Application.Service
 
             var response = await _tournamentRepository.ChangeTournamentStatus(tournamentStatus.NewStatus, idTournament);
 
+            if (tournamentStatus.NewStatus.Equals(TournamentStatus.FINISHED))
+                //CAMBIAR ESTADO DE LOS TICKETS DE PARTICIPANTE A USED PARA INVALIDAR
+                //NECESITO ID TORNEO
+                await _eventBusProducer.PublishEventAsync<int>(idTournament, Queues.Queues.CHANGE_TICKETS_PARTICIPANT_USED);
+
             return response;
         }
     }

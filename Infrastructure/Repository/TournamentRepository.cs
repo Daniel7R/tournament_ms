@@ -144,5 +144,13 @@ namespace TournamentMS.Infrastructure.Repository
         {
             return await _context.Tournaments.Where(t => ids.Contains(t.Id)).ToListAsync();
         }
+
+        public async Task<IEnumerable<Tournament>> GetTournamentsAndMatchesCurrentDay()
+        {
+            var date = DateTime.UtcNow.AddHours(-5).Date;
+            var tournaments = await _context.Tournaments.Where(t => t.Matches.Any(m => m.Date.Date == date)).Include(t => t.Matches).ToListAsync();
+
+            return tournaments;
+        }
     }
 }

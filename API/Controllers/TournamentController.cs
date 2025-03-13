@@ -92,27 +92,6 @@ namespace TournamentMS.API.Controllers
             }
         }
 
-
-        [HttpGet]
-        [Route("tournaments/{id}", Name = "GetTournamentById")]
-        [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO>))]
-        [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
-        public async Task<IActionResult> GetTournament(int id)
-        {
-            var tournament = await _tournamentService.GetTournamentByIdAsync(id);
-            ResponseDTO<TournamentResponseDTO?> _responseDTO = new();
-
-            if (tournament == null)
-            {
-                _responseDTO.Message = "Not tournament found";
-                return NotFound(_responseDTO);
-            }
-
-            _responseDTO.Result = tournament;
-
-            return Ok(_responseDTO);
-        }
-
         [Authorize]
         [HttpPatch]
         [Route("tournaments/{idTournament}/date", Name = "ChangeDate")]

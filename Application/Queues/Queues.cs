@@ -12,6 +12,7 @@
         public const string ASSIGN_ROLE_VIEWER = "viewer.role";
         public const string GET_BULK_TOURNAMENTS = "tournament.bulk.names";
         public const string MATCH_BELONGS_TOURNAMENT = "match.belongs.tournament";
+        public const string CHANGE_TICKETS_PARTICIPANT_USED = "tickets.participant.used";
 
         //streams
         public const string VALIDATE_MATCH_AND_ROLE = "match.role.user";
@@ -29,5 +30,6 @@
         //NOTIFICATIONS
         public const string SEND_EMAIL_CREATE_TOURNAMENT= "tournament.created";
         public const string SEND_EMAIL_UPDATE_TOURNAMENT = "tournament.update";
+        public const string REMINDER = "matches.tournament.reminder";
     }
 }

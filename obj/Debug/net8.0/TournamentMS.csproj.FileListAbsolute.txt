@@ -6,6 +6,7 @@ C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.runtimeconfig.json
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.pdb
+C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.xml
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\AutoMapper.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\Azure.Core.dll
@@ -179,8 +180,7 @@ C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\Tourname.698D319E.Up2Date
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.dll
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\refint\TournamentMS.dll
+C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.xml
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.pdb
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.genruntimeconfig.cache
 C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\ref\TournamentMS.dll
-C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\bin\Debug\net8.0\TournamentMS.xml
-C:\Users\dr734\OneDrive\Escritorio\assessment\E-Sports\TournamentManagement\obj\Debug\net8.0\TournamentMS.xml
