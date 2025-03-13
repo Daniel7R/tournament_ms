@@ -14,6 +14,7 @@ namespace TournamentMS.Application.Interfaces
         Task AssignRoleUser(CreateUserRoleDTO createUserRole, int idUser);
 
         Task AssignRoleUser(int idUser, EventType eventType, int idEvent, TournamentRoles role);
+        Task AddSubAdmin(CreateSubadminRequest request, int idAdmin);
 
     }
 }

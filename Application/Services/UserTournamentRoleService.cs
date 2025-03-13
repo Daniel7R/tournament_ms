@@ -21,14 +21,19 @@ namespace TournamentMS.Application.Services
             _logger = logger;
         }
 
+        public async Task AddSubAdmin(CreateSubadminRequest request, int idAdmin)
+        {
+            CreateUserRoleDTO create = new CreateUserRoleDTO { EventType = EventType.TOURNAMENT, IdEvent = request.IdTournament, IdUser = request.IdUser, Role = TournamentRoles.SUBADMIN };
+
+            await AssignRoleUser(create, idAdmin);
+        }
+
         /// <summary>
         /// Method to assign role to the user
         /// </summary>
-        /// <param name="idUser">When user admin wants  to assig</param>
-        /// <param name="idEvent"></param>
-        /// <param name="role"></param>
+        /// <param name="createUserRole"></param>
+        /// <param name="idUser"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         public async Task AssignRoleUser(CreateUserRoleDTO createUserRole, int idUser)
         {
             //validar usuario
@@ -49,6 +54,7 @@ namespace TournamentMS.Application.Services
                     //validate max2
                     await IsAlreadyTwoSubadmin(createUserRole.IdEvent);
                     tournamentUserRole.IdTournament = createUserRole.IdEvent;
+                    await AssignRoleUser(createUserRole.IdUser, EventType.TOURNAMENT, createUserRole.IdEvent, TournamentRoles.SUBADMIN);
                     break;
                 case TournamentRoles.VIEWER:
                     //assign role once ticket sale is confirmed
@@ -63,10 +69,10 @@ namespace TournamentMS.Application.Services
             //throw new NotImplementedException();
         }
 
-        public Task AssignRoleUser(int idUser, EventType eventType, int idEvent, TournamentRoles role)
+        public async Task AssignRoleUser(int idUser, EventType eventType, int idEvent, TournamentRoles role)
         {
-
-            throw new NotImplementedException();
+            await _userRoleRepo.AssignRoleUser(idUser, eventType, idEvent, role);
+            //throw new NotImplementedException();
         }
 
         private async Task IsAdminTournament(int idUser, int idEvent) 
@@ -81,7 +87,7 @@ namespace TournamentMS.Application.Services
         {
             var response = await _userRoleRepo.GetByIdTournament(idTournament);
 
-            int count = response.Where(r => r.Role == TournamentRoles.SUBADMIN).Count();
+            int count = response.Where(r => r.Role == TournamentRoles.SUBADMIN && r.IdTournament== idTournament).Count();
 
             if(response.Count() == 2)
             {
