@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TournamentMS.Domain.Entities;
+using TournamentMS.Domain.Enums;
+using TournamentMS.Domain.Exceptions;
 using TournamentMS.Infrastructure.Data;
 
 namespace TournamentMS.Infrastructure.Repository
@@ -53,5 +55,42 @@ namespace TournamentMS.Infrastructure.Repository
         }
 
         public async Task<IEnumerable<Matches>> GetMatchesByIdTournament(int idTournament) => await _context.Matches.Where(match => match.IdTournament == idTournament).ToListAsync();
+    
+        public async Task SetWinnerMatch(int idMatch, int idTeam, MatchStatus status)
+        {
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                await _context.Matches.Where(m => m.Id == idMatch)
+                       .ExecuteUpdateAsync(setters => setters
+                            .SetProperty(t => t.Status, status)
+                            .SetProperty(m => m.IdTeamWinner, idTeam)
+                );
+                await transaction.CommitAsync();   
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new BusinessRuleException($"error assigning winner {ex.Message}");
+            }
+        }
+
+        public async Task UpdateMatchDate(int idMatch, DateTime newDate)
+        {
+              using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                await _context.Matches.Where(m => m.Id == idMatch)
+                       .ExecuteUpdateAsync(setters => setters
+                            .SetProperty(m => m.Date, newDate)
+                );
+                await transaction.CommitAsync();   
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new BusinessRuleException($"error changing date match {ex.Message}");
+            }
+        }
     }
 }

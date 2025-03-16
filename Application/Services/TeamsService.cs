@@ -126,5 +126,9 @@ namespace TournamentMS.Application.Services
             var areAllValid = await _teamsRepo.AreValidTeamsTournament(idsTournametns, idTournament);
             return areAllValid;
         }
+
+        public async Task<Teams> GetTeamById(int idTeam){
+            return await _teamsRepo.GetByIdAsync(idTeam);
+        }
     }
 }

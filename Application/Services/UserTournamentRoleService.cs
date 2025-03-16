@@ -59,13 +59,15 @@ namespace TournamentMS.Application.Services
                 case TournamentRoles.VIEWER:
                     //assign role once ticket sale is confirmed
                     tournamentUserRole.IdMatch= createUserRole.IdEvent;
+                    await AssignRoleUser(createUserRole.IdUser, EventType.MATCH, createUserRole.IdEvent, TournamentRoles.VIEWER);
                     break;
                 case TournamentRoles.PARTICIPANT:
                     //assign role once ticket sale is confirmed
                     tournamentUserRole.IdTournament= createUserRole.IdEvent;
                     break;
             }
-            await _userRoleRepo.AddAsync(tournamentUserRole);
+            if(!createUserRole.Role.Equals(TournamentRoles.SUBADMIN)&&!createUserRole.Role.Equals(TournamentRoles.VIEWER))
+                await _userRoleRepo.AddAsync(tournamentUserRole);
             //throw new NotImplementedException();
         }
 

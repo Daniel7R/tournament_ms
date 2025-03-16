@@ -356,24 +356,43 @@ namespace TournamentMS.Migrations
 
             modelBuilder.Entity("TournamentMS.Domain.Entities.TournamentUserRole", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("IdMatch")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_match");
+
+                    b.Property<int?>("IdTournament")
+                        .HasColumnType("integer")
+                        .HasColumnName("id_tournament");
+
                     b.Property<int>("IdUser")
                         .HasColumnType("integer")
                         .HasColumnName("id_user");
 
-                    b.Property<int>("IdTournament")
-                        .HasColumnType("integer")
-                        .HasColumnName("id_tournament");
-
                     b.Property<string>("Role")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("role");
 
-                    b.Property<int?>("IdMatch")
-                        .HasColumnType("integer");
+                    b.HasKey("Id");
 
-                    b.HasKey("IdUser", "IdTournament", "Role");
+                    b.HasIndex("IdMatch");
 
                     b.HasIndex("IdTournament");
+
+                    b.HasIndex("IdUser", "IdMatch")
+                        .IsUnique()
+                        .HasFilter("id_match IS NOT NULL");
+
+                    b.HasIndex("IdUser", "IdTournament")
+                        .IsUnique()
+                        .HasFilter("id_tournament IS NOT NULL");
 
                     b.ToTable("tournaments_users_roles", (string)null);
                 });
@@ -453,11 +472,19 @@ namespace TournamentMS.Migrations
 
             modelBuilder.Entity("TournamentMS.Domain.Entities.TournamentUserRole", b =>
                 {
-                    b.HasOne("TournamentMS.Domain.Entities.Tournament", null)
+                    b.HasOne("TournamentMS.Domain.Entities.Matches", "Match")
+                        .WithMany()
+                        .HasForeignKey("IdMatch")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("TournamentMS.Domain.Entities.Tournament", "Tournament")
                         .WithMany("UsersTournamentRole")
                         .HasForeignKey("IdTournament")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Match");
+
+                    b.Navigation("Tournament");
                 });
 
             modelBuilder.Entity("TournamentMS.Domain.Entities.Category", b =>

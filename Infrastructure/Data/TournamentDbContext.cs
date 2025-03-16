@@ -83,15 +83,32 @@ namespace TournamentMS.Infrastructure.Data
             modelBuilder.Entity<TeamsMatches>().Property(tm => tm.IdTeam).HasColumnName("id_team");
             modelBuilder.Entity<TeamsMatches>().Property(tm => tm.IdMatch).HasColumnName("id_match");
 
+            // modelBuilder.Entity<TournamentUserRole>()
+            //     .HasKey(tur => new { tur.IdUser, tur.IdTournament, tur.Role, tur.IdMatch });
             modelBuilder.Entity<TournamentUserRole>()
-                .HasKey(tur => new { tur.IdUser, tur.IdTournament, tur.Role });
+                .HasIndex(tur => new { tur.IdUser, tur.IdTournament })
+                .IsUnique()
+                .HasFilter("id_tournament IS NOT NULL");
+            modelBuilder.Entity<TournamentUserRole>()
+                .HasIndex(tur => new { tur.IdUser, tur.IdMatch })
+                .IsUnique()
+                .HasFilter("id_match IS NOT NULL"); 
+            modelBuilder.Entity<TournamentUserRole>().Property(t  => t.Id).HasColumnName("id").ValueGeneratedOnAdd();
             modelBuilder.Entity<TournamentUserRole>().Property(t => t.IdTournament).HasColumnName("id_tournament");
+            modelBuilder.Entity<TournamentUserRole>().Property(t => t.IdMatch).HasColumnName("id_match");
             modelBuilder.Entity<TournamentUserRole>().Property(t => t.IdUser).HasColumnName("id_user");
             modelBuilder.Entity<TournamentUserRole>().Property(t => t.Role).HasColumnName("role").HasConversion<string>();
             modelBuilder.Entity<TournamentUserRole>()
-                .HasOne<Tournament>()
+                .HasOne(t => t.Tournament)
                 .WithMany(t => t.UsersTournamentRole)
-                .HasForeignKey(tur => tur.IdTournament);
+                .HasForeignKey(tur => tur.IdTournament)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+            modelBuilder.Entity<TournamentUserRole>()
+                .HasOne(t => t.Match)
+                .WithMany()
+                .HasForeignKey(tur => tur.IdMatch)
+                .OnDelete(DeleteBehavior.SetNull).IsRequired(false);
 
             modelBuilder.Entity<Matches>().HasKey(m => m.Id);
             modelBuilder.Entity<Matches>().Property(m => m.Id).HasColumnName("id").ValueGeneratedOnAdd();

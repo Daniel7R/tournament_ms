@@ -20,5 +20,6 @@ namespace TournamentMS.Application.Interfaces
         Task<IEnumerable<TeamsTournamentResponse>> GetFullInformationTeams(int idTournament);
 
         Task<bool> AreValidTeamsInTournament(List<int> idsTournametns, int idTournament);
+        Task<Teams> GetTeamById(int idTeam);
     }
 }

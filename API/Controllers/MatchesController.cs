@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Security.Claims;
+using TournamentMS.Application.DTOs;
 using TournamentMS.Application.DTOs.Request;
 using TournamentMS.Application.DTOs.Response;
 using TournamentMS.Application.Interfaces;
@@ -72,7 +74,7 @@ namespace TournamentMS.API.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("")]
-        public async Task<IActionResult> GetMatchesByTournament([FromQuery] int idTournament)
+        public async Task<IActionResult> GetMatchesByTournament([FromQuery, BindRequired] int idTournament)
         {
             var response = new ResponseDTO<IEnumerable<MatchesResponseDTO>>();
             try
@@ -89,7 +91,6 @@ namespace TournamentMS.API.Controllers
                 response.Message=ex.Message;
                 return BadRequest(response);
             }
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -97,29 +98,76 @@ namespace TournamentMS.API.Controllers
         /// </summary>
         /// <returns></returns>
         [Authorize]
-        [HttpPost]
+        [HttpPatch]
         [Route("winner")]
-        [ProducesResponseType(200, Type = typeof(ResponseDTO<string?>))]
-        [ProducesResponseType(400, Type = typeof(ResponseDTO<object?>))]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<bool>))]
+        [ProducesResponseType(400, Type = typeof(ResponseDTO<bool?>))]
         [ProducesResponseType(401)]
-        public Task<IActionResult> SetWinnerMatch()
+        [ProducesResponseType(500, Type = typeof(ResponseDTO<bool?>))]
+        public async Task<IActionResult> SetWinnerMatch([FromBody] MatchWinnerDTO matchWinner)
         {
-            throw new NotImplementedException();
+            var response = new ResponseDTO<bool?>();
+            try{
+                var user = ExtractUserId();
+                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
+                int idUser = Convert.ToInt32(user);
+                var setWinner =  await _matchesService.SetWinnerMatch(matchWinner,idUser);
+                response.Result= true;
+                response.Message="Winner has been set";
+
+                return Ok(response);
+
+            } catch (BusinessRuleException br){
+                response.Message= br.Message;
+
+                return BadRequest(response);
+            } catch(InvalidRoleException ir){
+                response.Message =ir.Message;
+
+                return BadRequest(response);
+            } catch (Exception ex){
+                response.Message =ex.Message;
+
+                return StatusCode(500, response);
+            }
         }
         /// <summary>
-        /// Change the match date
+        /// Change the match date if provided date and math are valid, and user has enough permissions
         /// </summary>
         /// <returns></returns>
         [Authorize]
         [HttpPatch]
-        [Route("{idMatch}/date")]
+        [Route("date")]
         [ProducesResponseType(200, Type = typeof(ResponseDTO<string?>))]
         [ProducesResponseType(400, Type = typeof(ResponseDTO<object?>))]
         [ProducesResponseType(401)]
-        public Task<IActionResult> ChangeDateMatch(int idMatch)
+        public async Task<IActionResult> ChangeDateMatch([FromBody] ChangeMatchhDate changeMatchhDate)
         {
             //validar que la fecha del partido este dentro del rango de fechas del torneo
-            throw new NotImplementedException();
+            var response = new ResponseDTO<bool?>();
+            try{
+                var user = ExtractUserId();
+                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
+                int idUser = Convert.ToInt32(user);
+                var setWinner =  await _matchesService.ChangeMatchDate(changeMatchhDate,idUser);
+                response.Result= true;
+                response.Message="Date has been changed";
+
+                return Ok(response);
+
+            } catch (BusinessRuleException br){
+                response.Message= br.Message;
+
+                return BadRequest(response);
+            } catch(InvalidRoleException ir){
+                response.Message =ir.Message;
+
+                return BadRequest(response);
+            } catch (Exception ex){
+                response.Message =ex.Message;
+
+                return StatusCode(500, response);
+            }
         }
 
         private string? ExtractUserId()
