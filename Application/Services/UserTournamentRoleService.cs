@@ -81,7 +81,9 @@ namespace TournamentMS.Application.Services
         {
             var response = await _userRoleRepo.GetUserRole(idUser, idEvent, EventType.TOURNAMENT);
             //only admin can assign subadmins
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             if (response == null && !response.Role.Equals(TournamentRoles.ADMIN)) throw new InvalidRoleException("User has no permissions");
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
         }
 

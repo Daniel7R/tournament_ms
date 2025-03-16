@@ -178,9 +178,15 @@ namespace TournamentMS.Application.Service
                     var tournament = tournaments.FirstOrDefault(x => x.Id == t.Id);
                     if (tournament != null)
                     {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                         t.PrizeDescription = tournament?.Prize.Description ?? null;
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                         t.TotalPrize = tournament?.Prize.Total ?? 0;
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                         t.CategoryName = tournament.Category.Name;
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                         t.GameName = tournament.Game.Name;
                         t.MaxPlayers = tournament.Category.LimitParticipant;
                     }

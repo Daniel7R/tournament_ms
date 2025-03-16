@@ -124,6 +124,7 @@ namespace TournamentMS.Infrastructure.EventBus
                     {
                         return new GetMatchByIdResponse();
                     }
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                     return new GetMatchByIdResponse
                     {
                         IdMatch = match?.Id ?? 0,
@@ -131,6 +132,7 @@ namespace TournamentMS.Infrastructure.EventBus
                         Name =match.Name,
                         Status = match.Status.ToString()
                     };
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                 }
             });
         }
@@ -142,7 +144,9 @@ namespace TournamentMS.Infrastructure.EventBus
             {
                 Task.Run(InitializeAsync).GetAwaiter().GetResult();
             }
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, null).Wait();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
             _channel.BasicQosAsync(0, 1, false);
 
             _handlers[queueName] = async (message) =>
@@ -172,10 +176,12 @@ namespace TournamentMS.Infrastructure.EventBus
                     await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
                 } catch(Exception ex)
                 {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                     if (!_connection.IsOpen)
                     {
                         await InitializeAsync();
                     }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
                     await _channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: true);
                 }
@@ -197,7 +203,9 @@ namespace TournamentMS.Infrastructure.EventBus
                 await InitializeAsync();
             }
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             await _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false, null);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
             await _channel.BasicQosAsync(0, 1, false);
 
             _eventHandlers[queueName] = async (message) =>
@@ -223,10 +231,12 @@ namespace TournamentMS.Infrastructure.EventBus
                 }
                 catch (Exception ex)
                 {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                     if (!_connection.IsOpen)
                     {
                         await InitializeAsync();
                     }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                     await _channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: true);
                 }
             };

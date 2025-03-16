@@ -43,7 +43,9 @@ namespace TournamentMS.Application.Services
             if (tournament != null && tournament.IsFree == true) await ValidateMax2FreeMatchesTournament(tournament.Id);
 
             //validate match is in range
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             var isValidDate = IsDateInRange(match2Create.MatchDate, tournament.StartDate, tournament.EndDate);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
             if (isValidDate == false) throw new BusinessRuleException($"Match date is not valid, tournament startdate: {tournament.StartDate} and endDate: {tournament.EndDate}, but provided  was {match2Create.MatchDate}");
 
             //VALIDATE TEAMS TO ASSIGN TO MATCH BELONGS TO TOURNAMENT

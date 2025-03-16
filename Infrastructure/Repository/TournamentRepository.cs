@@ -93,7 +93,9 @@ namespace TournamentMS.Infrastructure.Repository
             {
 
                 var tournament = await _context.Tournaments.FindAsync(idTournament);
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                 tournament.StartDate = dates.StartDate;
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                 tournament.EndDate = dates.EndDate;
 
                 _context.Tournaments.Attach(tournament);
@@ -115,7 +117,9 @@ namespace TournamentMS.Infrastructure.Repository
             {
 
                 var tournament = await _context.Tournaments.FindAsync(idTournament);
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                 tournament.Status = status;
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
                 _context.Tournaments.Attach(tournament);
                 _context.Entry(tournament).Property(t => t.Status).IsModified = true;

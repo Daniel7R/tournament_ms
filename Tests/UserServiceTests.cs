@@ -52,7 +52,9 @@ namespace TournamentMS.Tests
 
             // Assert
             Assert.NotNull(result);
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expectedUser.IdUser, result.IdUser);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
             Assert.Equal(expectedUser.Name, result.Name);
         }
 
