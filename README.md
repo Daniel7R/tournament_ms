@@ -21,7 +21,6 @@ Para ejecutar el proyecto UsersAuthorization, sigue estos pasos:
 
 - Asegúrate de tener una base de datos PostgreSQL en funcionamiento.
 - Configura las variables de entorno necesarias o modifica los archivos appsettings.json, según sea necesario.
-- Navega al directorio del proyecto UsersAuthorization.
 - Ejecuta el siguiente comando para aplicar las migraciones de la base de datos: `dotnet ef database update`
 - Ejecuta el siguiente comando para iniciar el proyecto: `dotnet run`
 

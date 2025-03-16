@@ -11,12 +11,6 @@ namespace TournamentMS.Infrastructure.BackgroundJobs
             _reminderService = reminderService;
         }
 
-        public void SendReminder()
-        {
-            Console.WriteLine("📧 Enviando recordatorio diario 🚀");
-            // Aquí puedes agregar la lógica para enviar el correo
-        }
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
