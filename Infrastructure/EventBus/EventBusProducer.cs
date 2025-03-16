@@ -37,38 +37,49 @@ namespace TournamentMS.Infrastructure.EventBus
                                              arguments: null);
             var replyQueue = await _channel.QueueDeclareAsync();
             var replyQueueName = replyQueue.QueueName;
-
-            var correlationId = Guid.NewGuid().ToString();
-
-            var props = new BasicProperties
+            try
             {
-                CorrelationId = correlationId,
-                ReplyTo = replyQueueName
-            };
 
-            var messageBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(request));
+                var correlationId = Guid.NewGuid().ToString();
 
-            await _channel.BasicPublishAsync(exchange: "", routingKey: queueName, mandatory: false, basicProperties: props, body: messageBytes);
-
-            var tcs = new TaskCompletionSource<TResponse>();
-
-            var consumer = new AsyncEventingBasicConsumer(_channel);
-
-            consumer.ReceivedAsync += async (model, ea) =>
-            {
-                if (ea.BasicProperties.CorrelationId == correlationId)
+                var props = new BasicProperties
                 {
-                    var response = JsonConvert.DeserializeObject<TResponse>(Encoding.UTF8.GetString(ea.Body.ToArray()));
-                    tcs.SetResult(response);
-                }
-            };
+                    CorrelationId = correlationId,
+                    ReplyTo = replyQueueName
+                };
 
-            await _channel.BasicConsumeAsync(consumer: consumer, queue: replyQueueName, autoAck: false);
+                var messageBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(request));
 
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            cts.Token.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false);
+                await _channel.BasicPublishAsync(exchange: "", routingKey: queueName, mandatory: false, basicProperties: props, body: messageBytes);
 
-            return await tcs.Task;
+                var tcs = new TaskCompletionSource<TResponse>();
+
+                var consumer = new AsyncEventingBasicConsumer(_channel);
+
+                consumer.ReceivedAsync += async (model, ea) =>
+                {
+                    if (ea.BasicProperties.CorrelationId == correlationId)
+                    {
+                        var response = JsonConvert.DeserializeObject<TResponse>(Encoding.UTF8.GetString(ea.Body.ToArray()));
+                        tcs.SetResult(response);
+                    }
+                };
+
+                await _channel.BasicConsumeAsync(consumer: consumer, queue: replyQueueName, autoAck: false);
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                cts.Token.Register(() => tcs.TrySetCanceled(), useSynchronizationContext: false);
+
+                return await tcs.Task;
+            }
+            catch (TaskCanceledException)
+            {
+                throw new Exception($"Error: timeout processing at queue. Check if the service is working or the queue is working correctly.");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error in queue messages: {ex.Message}");
+            }
         }
 
         public async Task PublishEventAsync<TEvent>(TEvent eventMessage, string queueName)

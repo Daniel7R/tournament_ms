@@ -1,14 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Security.Claims;
 using TournamentMS.Application.DTOs.Request;
 using TournamentMS.Application.DTOs.Response;
 using TournamentMS.Application.Interfaces;
-using TournamentMS.Application.Messages.Request;
-using TournamentMS.Application.Messages.Response;
-using TournamentMS.Application.Queues;
 using TournamentMS.Domain.Enums;
 using TournamentMS.Domain.Exceptions;
 
@@ -16,26 +12,35 @@ namespace TournamentMS.API.Controllers
 {
     [Route("api/v1")]
     [ApiController]
+    [Consumes("application/json")]
+    [Produces("application/json")]
     public class TournamentController : ControllerBase
     {
         private readonly ITournamentService _tournamentService;
+        private readonly IUserTournamentRoleService _tournamentRoleUser;
 
-        public TournamentController(ITournamentService tournamentService)
+        public TournamentController(ITournamentService tournamentService, IUserTournamentRoleService userTournamentRoleService)
         {
             _tournamentService = tournamentService;
+            _tournamentRoleUser = userTournamentRoleService;
         }
 
+        /// <summary>
+        /// Creates a new tournament in system, if free, it validates, that a user can't create more than one free tournament
+        /// </summary>
+        /// <param name="tournamentCreated"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpPost]
         [Route("tournaments", Name = "CreateTournament")]
-        [Authorize]
         [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO?>))]
         [ProducesResponseType(400, Type = typeof(ResponseDTO<object?>))]
+        [ProducesResponseType(401)]
         public async Task<IActionResult> CreateTournament([FromBody] CreateTournamentRequest tournamentCreated)
         {
             ResponseDTO<ModelStateDictionary?> _responseErrorDTO = new();
             if (!ModelState.IsValid)
             {
-                _responseErrorDTO.IsSuccess = false;
                 _responseErrorDTO.Result = ModelState;
                 return BadRequest(_responseErrorDTO);
             }
@@ -46,146 +51,217 @@ namespace TournamentMS.API.Controllers
                 if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
 
                 tournamentCreated.CreatedBy = Convert.ToInt32(user);
-                var tournament = await _tournamentService.CreateTournamentAsync(tournamentCreated);
+                var tournament = await _tournamentService.CreateTournamentAsync(tournamentCreated, Convert.ToInt32(user));
                 _responseDTO.Result = tournament;
+                _responseDTO.Message = "Tournament successfully created";
 
                 return Ok(_responseDTO);
             }
             catch (BusinessRuleException bre)
             {
-                _responseErrorDTO.IsSuccess = false;
                 _responseErrorDTO.Message = bre.Message;
                 return BadRequest(_responseErrorDTO);
             }
             catch (Exception ex)
             {
-                _responseErrorDTO.IsSuccess = false;
                 _responseErrorDTO.Message = ex.Message;
                 return BadRequest(_responseErrorDTO);
             }
         }
 
+        /// <summary>
+        /// Get the available tournaments according the provided statuses
+        /// </summary>
+        /// <param name="statuses"></param>
+        /// <returns></returns>
         [HttpGet]
-        [Route("tournaments", Name ="GetTournaments")]
-        [ProducesResponseType(200, Type =typeof(ResponseDTO<TournamentResponseDTO?>))]
-        [ProducesResponseType(400, Type = typeof(ResponseDTO<TournamentResponseDTO?>))]
-        public async Task<IActionResult> GetTournaments([FromQuery] TournamentStatus status)
+        [Route("tournaments", Name = "GetTournaments")]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<FullTournamentResponse?>))]
+        [ProducesResponseType(400, Type = typeof(ResponseDTO<FullTournamentResponse?>))]
+        public async Task<IActionResult> GetTournaments([FromQuery] List<TournamentStatus> statuses)
         {
-            ResponseDTO<IEnumerable<TournamentResponseDTO>?> _responseDTO = new();
+            ResponseDTO<IEnumerable<FullTournamentResponse>?> _responseDTO = new();
+            if (statuses is null || statuses.Count == 0)
+            {
+                return BadRequest(new ResponseDTO<FullTournamentResponse?>
+                {
+                    Message = "At least one status must be provided."
+                });
+            }
             try
             {
-                var tournaments = await _tournamentService.GetTournamentsByStatus(status);
+                var tournaments = await _tournamentService.GetTournamentsByStatus(statuses);
 
                 _responseDTO.Result = tournaments;
+                _responseDTO.Message = "Successfully requested";
 
                 return Ok(_responseDTO);
             }
             catch (Exception ex)
             {
-                _responseDTO.IsSuccess = false;
                 _responseDTO.Message = ex.Message;
                 return BadRequest(_responseDTO);
             }
         }
 
-
-        [HttpGet]
-        [Route("tournaments/{id}", Name = "GetTournamentById")]
-        [ProducesResponseType(200, Type =typeof(ResponseDTO<TournamentResponseDTO>))]
-        [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
-        public async Task<IActionResult> GetTournament(int id)
-        {
-            var tournament = await _tournamentService.GetTournamentByIdAsync(id);
-            ResponseDTO<TournamentResponseDTO?> _responseDTO= new();
-
-            if (tournament == null)
-            {
-                _responseDTO.IsSuccess = false;
-                _responseDTO.Message = "Not tournament found";
-                return NotFound(_responseDTO);
-            }
-
-            _responseDTO.Result = tournament;
-
-            return Ok(_responseDTO);
-        }
-
-
+        /// <summary>
+        /// Change the tournament dates, remember, date must be higher than request date
+        /// </summary>
+        /// <param name="idTournament"></param>
+        /// <param name="changeDates"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpPatch]
-        [Route("tournaments/{id}", Name = "ChangeDate")]
-        [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO>))]
+        [Route("tournaments/{idTournament}/date", Name = "ChangeDate")]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<string?>))]
         [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
-        public async Task<IActionResult> ChangeDate(int id)
+        [ProducesResponseType(401, Type = typeof(ResponseDTO<string?>))]
+        [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> ChangeDates(int idTournament, [FromBody]ChangeDatesRequest changeDates)
         {
-            throw new NotImplementedException();
+            ResponseDTO<string?> response = new ResponseDTO<string?>();
+            try
+            {
+                var user = ExtractUserId();
+                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
+                int idUser = Convert.ToInt32(user);
+                var updateDates=await  _tournamentService.ChangeTournamentDate(idUser, idTournament,changeDates);
+                response.Message = "Tournament dates successfully changed";
+                if(!updateDates)
+                {
+                    response.Message = "Tournament date could not be changed";
+                }
+                return Ok(response);
+             }
+            catch(InvalidRoleException ir)
+            {
+                response.Message = ir.Message;
+
+                return BadRequest(response);
+            }
+            catch(BusinessRuleException br)
+            {
+                response.Message = br.Message;
+                return BadRequest(response);
+            }
         }
 
-        [HttpPatch]
-        [Route("tournaments/{id}", Name = "ChangeTournamentStatus")]
-        [ProducesResponseType(200, Type = typeof(ResponseDTO<TournamentResponseDTO>))]
+        /* cambiarlo por un metodo que modifique el premio
+        [HttpPost]
+        [Route("tournaments/{idTournament}/prize")]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<CreatePrizeDTO?>))]
         [ProducesResponseType(404, Type = typeof(ResponseDTO<string?>))]
-        public async Task<IActionResult> ChangeTournamentStatus(int id)
+        [ProducesResponseType(401, Type = typeof(ResponseDTO<string?>))]
+        public async Task<IActionResult> AssignTournamentPrize(int idTournament, [FromBody] CreatePrizeDTO prize)
         {
-            throw new NotImplementedException();
-        }
-
-        /*
-        [HttpGet]
-        [Route("testrabbit/{id}")]
-        public async Task<IActionResult> TestRabbit(int id)
-        {
-            var request = new GetUserByIdRequest { Id = id };
-            //var response = await _eventBusProducer.SendRequest<GetUserByIdRequest, GetUserByIdResponse>(request, Queues.GET_USER_BY_ID);
-            return Ok(response);
-        }*/
-
-        /*
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTournament(int id, [FromBody] TournamentCreatedDTO tournamentUpdate)
-        {
-            var tournament = await _tournamentService.GetTournamentById(id);
-
-            if (tournament == null)
+            var response = new ResponseDTO<CreatePrizeDTO>();
+            try
             {
-                _responseDTO.IsSuccess = false;
-                _responseDTO.Message = "Tournament does not exit";
+                var user = ExtractUserId();
+                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
+                int idUser = Convert.ToInt32(user);
 
-                return NotFound(_responseDTO);
+                CreatePrizeDTO prizeCreated = await _tournamentService.CreatePrizeAndAssignToTournament(prize, idTournament, idUser);
+                response.Message = "Successfully assigned";
+                return Ok(response);
             }
-
-            if (!ModelState.IsValid)
+            catch (BusinessRuleException ex) 
             {
-                _responseDTO.IsSuccess = false;
-                _responseDTO.Result = ModelState;
-                return BadRequest(_responseDTO);
-            }
+                response.Message = ex.Message;
 
-            await _tournamentService.UpdateTournament(tournamentUpdate, tournament.Id);
-
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTournament(int id)
-        {
-            var tournament = await _tournamentService.GetTournamentById(id);
-            if (tournament == null)
+                return BadRequest(response);
+            } catch(InvalidRoleException re)
             {
-                _responseDTO.IsSuccess = false;
-                _responseDTO.Message = "Not found tournament";
-                return NotFound(_responseDTO);
+                response.Message = re.Message;
+                return Unauthorized(response);
             }
-            await _tournamentService.DeleteTournament(id);
-
-            return NoContent();
-
-
         }
         */
 
+        /// <summary>
+        /// Change the tournament status to a new valid Status from the system
+        /// </summary>
+        /// <param name="idTournament"></param>
+        /// <param name="tournamentStatus"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPatch]
+        [Route("tournaments/{idTournament}/status", Name = "ChangeTournamentStatus")]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        [ProducesResponseType(200, Type = typeof(ResponseDTO<bool?>))]
+        [ProducesResponseType(404, Type = typeof(ResponseDTO<bool?>))]
+        [ProducesResponseType(401, Type = typeof(ResponseDTO<bool?>))]
+        public async Task<IActionResult> ChangeTournamentStatus(int idTournament,[FromBody] ChangeTournamentStatus tournamentStatus)
+        {
+            var response = new ResponseDTO<bool?>();
+            try
+            {
+                var user = ExtractUserId();
+                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
+                int idUser = Convert.ToInt32(user);
+                var statusIsChanged = await _tournamentService.UpdateTournamentStatus(tournamentStatus, idTournament, idUser);
+                response.Message = "Status changed successfully";
+                if (statusIsChanged == false)
+                {
+                    response.Message = "Status could not be changed";
+                }
+                response.Result = statusIsChanged;
 
-        private string? ExtractUserId() {
+                return Ok(response);
+
+            } catch(InvalidRoleException ir)
+            {
+                response.Message = ir.Message;
+                return Unauthorized(response);
+
+            } catch(BusinessRuleException be)
+            {
+                response.Message = be.Message;
+                return BadRequest(response);
+            }
+        }
+        
+
+        /// <summary>
+        /// Add a new subadmin to tournament, to help admin manage tournament and events(can't be more then 2 subadmins by tournament)
+        /// </summary>
+        /// <param name="createSub"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost]
+        [Route("role/subadmin")]
+        public async Task<IActionResult> AssignSubadmins(CreateSubadminRequest createSub)
+        {
+            var response = new ResponseDTO<string?>();
+            //validar que el rol del usuario en el partido es el admin del torneo
+            try
+            {
+                var user = ExtractUserId();
+                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
+                int idUser = Convert.ToInt32(user);
+                await _tournamentRoleUser.AddSubAdmin(createSub, idUser);
+                response.Message = "Successfully added";
+
+                return Ok(response);
+            } catch(BusinessRuleException br)
+            {
+                response.Message = br.Message;
+                return BadRequest(response);
+            } catch(InvalidRoleException ir)
+            {
+                response.Message = ir.Message;
+                return BadRequest(response);
+            }
+             catch(Exception ex)
+            {
+                response.Message = ex.Message;
+                return StatusCode(500, response);
+            }
+        }
+
+        private string? ExtractUserId()
+        {
 
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                      ?? User.FindFirst("sub")?.Value;

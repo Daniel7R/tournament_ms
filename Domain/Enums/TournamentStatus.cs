@@ -9,6 +9,8 @@ namespace TournamentMS.Domain.Enums
         [EnumMember(Value = "ONGOING")]
         ONGOING,
         [EnumMember(Value = "FINISHED")]
-        FINISHED
+        FINISHED,
+        [EnumMember(Value = "CANCELED")]
+        CANCELED
     }
 }

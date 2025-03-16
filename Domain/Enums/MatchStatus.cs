@@ -1,10 +1,18 @@
-﻿namespace TournamentMS.Domain.Enums
+﻿using System.Runtime.Serialization;
+
+namespace TournamentMS.Domain.Enums
 {
-    public static class MatchStatus
+    public enum MatchStatus
     {
-        public const string PENDING = "PENDING";
-        public const string ONGOING = "ONGOING";
-        public const string FINISHED = "FINISHED";
-        public const string UNKNOWN = "UNKNOWN";
+        [EnumMember(Value = "PENDING")]
+        PENDING,
+        [EnumMember(Value="ONGOING")]
+        ONGOING,
+        [EnumMember(Value = "FINISHED")]
+        FINISHED,
+        [EnumMember(Value = "UNKNOWN")]
+        UNKNOWN,
+        [EnumMember(Value = "CANCELED")]
+        CANCELED
     }
 }

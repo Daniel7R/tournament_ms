@@ -7,13 +7,17 @@ namespace TournamentMS.Application.Mapping
 {
     public class Mapper: Profile
     {
-        public Mapper() { 
+        public Mapper() {
+            CreateMap<Prizes, CreatePrizeDTO>().ReverseMap();
             CreateMap<Tournament, TournamentResponseDTO>().ReverseMap();
+            CreateMap<Tournament, FullTournamentResponse>().ReverseMap();
             CreateMap<Tournament, CreateTournamentRequest>().ReverseMap().ForMember(dest => dest.IdOrganizer, opt => opt.MapFrom(src => src.CreatedBy));
             CreateMap<Game, CreateGameDTO>().ReverseMap();
             CreateMap<Game,  GameResponseDTO>().ReverseMap();
             CreateMap<Category, CategoryResponseDTO>().ReverseMap();
             CreateMap<Category, CreateCategoryDTO>().ReverseMap();
+            CreateMap<Matches, CreateMatchesRequestDTO>().ReverseMap();
+            CreateMap<MatchesResponseDTO, Matches>().ReverseMap().ForMember(dest => dest.IdMatch, opt => opt.MapFrom(src => src.Id));
         }
     }
 }
