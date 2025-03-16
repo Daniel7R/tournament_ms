@@ -1,28 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\dr734\\OneDrive\\Escritorio\\assessment\\E-Sports\\TournamentManagement\\TournamentMS.csproj": {}
+    "C:\\Users\\daniel.riverar_pragm\\Desktop\\Ms\\tournament_ms\\TournamentMS.csproj": {}
   },
   "projects": {
-    "C:\\Users\\dr734\\OneDrive\\Escritorio\\assessment\\E-Sports\\TournamentManagement\\TournamentMS.csproj": {
+    "C:\\Users\\daniel.riverar_pragm\\Desktop\\Ms\\tournament_ms\\TournamentMS.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\dr734\\OneDrive\\Escritorio\\assessment\\E-Sports\\TournamentManagement\\TournamentMS.csproj",
+        "projectUniqueName": "C:\\Users\\daniel.riverar_pragm\\Desktop\\Ms\\tournament_ms\\TournamentMS.csproj",
         "projectName": "TournamentMS",
-        "projectPath": "C:\\Users\\dr734\\OneDrive\\Escritorio\\assessment\\E-Sports\\TournamentManagement\\TournamentMS.csproj",
-        "packagesPath": "C:\\Users\\dr734\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\dr734\\OneDrive\\Escritorio\\assessment\\E-Sports\\TournamentManagement\\obj\\",
+        "projectPath": "C:\\Users\\daniel.riverar_pragm\\Desktop\\Ms\\tournament_ms\\TournamentMS.csproj",
+        "packagesPath": "C:\\Users\\daniel.riverar_pragm\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\daniel.riverar_pragm\\Desktop\\Ms\\tournament_ms\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\dr734\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\daniel.riverar_pragm\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -40,7 +37,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -72,9 +70,17 @@
               "target": "Package",
               "version": "[9.0.1, )"
             },
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[17.0.0, )"
+            },
             "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": {
               "target": "Package",
               "version": "[1.20.1, )"
+            },
+            "Moq": {
+              "target": "Package",
+              "version": "[4.16.1, )"
             },
             "Newtonsoft.Json": {
               "target": "Package",
@@ -91,6 +97,14 @@
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.4.0, )"
+            },
+            "xunit": {
+              "target": "Package",
+              "version": "[2.4.1, )"
+            },
+            "xunit.runner.visualstudio": {
+              "target": "Package",
+              "version": "[2.4.3, )"
             }
           },
           "imports": [
@@ -112,7 +126,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.300/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

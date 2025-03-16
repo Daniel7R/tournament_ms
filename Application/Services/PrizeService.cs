@@ -1,5 +1,6 @@
 ﻿using TournamentMS.Application.Interfaces;
 using TournamentMS.Domain.Entities;
+using TournamentMS.Domain.Exceptions;
 using TournamentMS.Infrastructure.Repository;
 
 namespace TournamentMS.Application.Services
@@ -21,6 +22,10 @@ namespace TournamentMS.Application.Services
         }
         public async Task<Prizes> CreatePrize(Prizes prizes)
         {
+            if (prizes == null)
+            {
+                throw new BusinessRuleException("The prize cannot be null.");
+            }
             await _prizesRepo.AddAsync(prizes);
             return prizes;
         }

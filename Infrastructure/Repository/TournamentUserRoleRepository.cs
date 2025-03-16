@@ -46,13 +46,15 @@ namespace TournamentMS.Infrastructure.Repository
 
                 await transaction.CommitAsync();
             }
-            catch (Exception)
+            catch(InvalidOperationException ioe){
+                await transaction.RollbackAsync();
+                throw new  BusinessRuleException($"Error with duplicate roles: {ioe.Message}");
+            }
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                throw new BusinessRuleException("User role can't be setted");
+                throw new BusinessRuleException($"User role can't be setted: {ex.Message}");
             }
-
-            throw new NotImplementedException();
         }
 
         public Task DeleteAsync(int id)

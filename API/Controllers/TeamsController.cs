@@ -17,6 +17,12 @@ namespace TournamentMS.API.Controllers
         {
             _teamsService = teamsService;
         }
+
+        /// <summary>
+        /// Returns basic info about teams, such as teams names, and team members in a tournament
+        /// </summary>
+        /// <param name="idTournament"></param>
+        /// <returns></returns>
         [HttpGet]
         [Route("teams", Name = "GetTeamsByIdTournament")]
         [ProducesResponseType(200, Type = typeof(ResponseDTO<IEnumerable<TeamsTournamentResponse?>>))]

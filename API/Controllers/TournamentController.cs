@@ -17,12 +17,19 @@ namespace TournamentMS.API.Controllers
     public class TournamentController : ControllerBase
     {
         private readonly ITournamentService _tournamentService;
+        private readonly IUserTournamentRoleService _tournamentRoleUser;
 
-        public TournamentController(ITournamentService tournamentService)
+        public TournamentController(ITournamentService tournamentService, IUserTournamentRoleService userTournamentRoleService)
         {
             _tournamentService = tournamentService;
+            _tournamentRoleUser = userTournamentRoleService;
         }
 
+        /// <summary>
+        /// Creates a new tournament in system, if free, it validates, that a user can't create more than one free tournament
+        /// </summary>
+        /// <param name="tournamentCreated"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost]
         [Route("tournaments", Name = "CreateTournament")]
@@ -62,6 +69,11 @@ namespace TournamentMS.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Get the available tournaments according the provided statuses
+        /// </summary>
+        /// <param name="statuses"></param>
+        /// <returns></returns>
         [HttpGet]
         [Route("tournaments", Name = "GetTournaments")]
         [ProducesResponseType(200, Type = typeof(ResponseDTO<FullTournamentResponse?>))]
@@ -92,6 +104,12 @@ namespace TournamentMS.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Change the tournament dates, remember, date must be higher than request date
+        /// </summary>
+        /// <param name="idTournament"></param>
+        /// <param name="changeDates"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPatch]
         [Route("tournaments/{idTournament}/date", Name = "ChangeDate")]
@@ -160,6 +178,12 @@ namespace TournamentMS.API.Controllers
         }
         */
 
+        /// <summary>
+        /// Change the tournament status to a new valid Status from the system
+        /// </summary>
+        /// <param name="idTournament"></param>
+        /// <param name="tournamentStatus"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPatch]
         [Route("tournaments/{idTournament}/status", Name = "ChangeTournamentStatus")]
@@ -197,6 +221,45 @@ namespace TournamentMS.API.Controllers
                 return BadRequest(response);
             }
         }
+        
+
+        /// <summary>
+        /// Add a new subadmin to tournament, to help admin manage tournament and events(can't be more then 2 subadmins by tournament)
+        /// </summary>
+        /// <param name="createSub"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost]
+        [Route("role/subadmin")]
+        public async Task<IActionResult> AssignSubadmins(CreateSubadminRequest createSub)
+        {
+            var response = new ResponseDTO<string?>();
+            //validar que el rol del usuario en el partido es el admin del torneo
+            try
+            {
+                var user = ExtractUserId();
+                if (string.IsNullOrEmpty(user)) throw new BusinessRuleException("Invalid User");
+                int idUser = Convert.ToInt32(user);
+                await _tournamentRoleUser.AddSubAdmin(createSub, idUser);
+                response.Message = "Successfully added";
+
+                return Ok(response);
+            } catch(BusinessRuleException br)
+            {
+                response.Message = br.Message;
+                return BadRequest(response);
+            } catch(InvalidRoleException ir)
+            {
+                response.Message = ir.Message;
+                return BadRequest(response);
+            }
+             catch(Exception ex)
+            {
+                response.Message = ex.Message;
+                return StatusCode(500, response);
+            }
+        }
+
         private string? ExtractUserId()
         {
 

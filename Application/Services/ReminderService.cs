@@ -25,7 +25,7 @@ namespace TournamentMS.Application.Services
             var tournamentMathces = await _tournamentRepo.GetTournamentsAndMatchesCurrentDay();
 
             //if matches send reminder
-            if (tournamentMathces.Any())
+            if (tournamentMathces!= null && tournamentMathces.Any())
             {
                 StringBuilder body = new StringBuilder();
                 body.AppendLine("<p>Matches scheduled for today:</p>");

@@ -89,7 +89,7 @@ namespace TournamentMS.Application.Services
 
             int count = response.Where(r => r.Role == TournamentRoles.SUBADMIN && r.IdTournament== idTournament).Count();
 
-            if(response.Count() == 2)
+            if(response.Count() >= 2)
             {
                 throw new BusinessRuleException("Tournament has already 2 subadmins");
             }
