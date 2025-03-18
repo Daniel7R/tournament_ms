@@ -1,25 +1,17 @@
-#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER app
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["TournamentManagement/TournamentManagement.csproj", "TournamentManagement/"]
-RUN dotnet restore "./TournamentManagement/TournamentManagement.csproj"
-COPY . .
-WORKDIR "/src/TournamentManagement"
-RUN dotnet build "./TournamentManagement.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./TournamentManagement.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "TournamentManagement.dll"]
+
+COPY *.csproj ./
+RUN dotnet restore
+
+COPY . ./
+RUN dotnet publish -c Release -r linux-x64 --self-contained false -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
+# config listen port
+ENV ASPNETCORE_URLS=http://+:8082 
+
+
+ENTRYPOINT ["dotnet", "TournamentMS.dll"]
