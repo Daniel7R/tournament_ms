@@ -36,7 +36,7 @@ namespace TournamentMS.Application.EventHandler
                 IsValidRoleUser = false
             };
             var userRole =await _userRoleRepo.GetUserRole(request.IdUser, match.IdTournament, Domain.Enums.EventType.TOURNAMENT);
-            if (userRole.Role!=null && (userRole.Role.Equals(TournamentRoles.ADMIN)||(userRole.Role.Equals(TournamentRoles.SUBADMIN))))
+            if (userRole !=null && userRole.Role!=null && (userRole.Role.Equals(TournamentRoles.ADMIN)||userRole.Role.Equals(TournamentRoles.SUBADMIN)))
             {
                 validation.IsValidRoleUser = true;
             }
