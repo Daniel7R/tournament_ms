@@ -1,6 +1,7 @@
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 using System.Text.Json.Serialization;
 using TournamentMS.Application.EventHandler;
 using TournamentMS.Application.Interfaces;
@@ -82,6 +83,7 @@ builder.Services.AddHttpClient<UserService>(client =>
 builder.AddAppAuthentication();
 builder.Services.AddAuthorization();
 
+Metrics.SuppressDefaultMetrics();
 
 var app = builder.Build();
 
@@ -92,10 +94,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRouting();
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseHttpMetrics();
 
+app.UseEndpoints(endpoints => {
+    endpoints.MapMetrics();
+});
 app.MapControllers();
 
 app.Run();
