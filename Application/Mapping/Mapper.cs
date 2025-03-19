@@ -17,7 +17,7 @@ namespace TournamentMS.Application.Mapping
             CreateMap<Category, CategoryResponseDTO>().ReverseMap();
             CreateMap<Category, CreateCategoryDTO>().ReverseMap();
             CreateMap<Matches, CreateMatchesRequestDTO>().ReverseMap();
-            CreateMap<MatchesResponseDTO, Matches>().ReverseMap().ForMember(dest => dest.IdMatch, opt => opt.MapFrom(src => src.Id));
+            CreateMap<MatchesResponseDTO, Matches>().ReverseMap().ForMember(dest => dest.IdMatch, opt => opt.MapFrom(src => src.Id)).ForMember(dest => dest.MatchStatus, opt => opt.MapFrom(src => src.Status));
         }
     }
 }
