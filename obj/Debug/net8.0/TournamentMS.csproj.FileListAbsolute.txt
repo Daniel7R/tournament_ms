@@ -458,3 +458,5 @@ C:\Users\daniel.riverar_pragm\Desktop\Ms\tournament_ms\bin\Debug\net8.0\zh-Hans\
 C:\Users\daniel.riverar_pragm\Desktop\Ms\tournament_ms\bin\Debug\net8.0\zh-Hant\Microsoft.TestPlatform.CommunicationUtilities.resources.dll
 C:\Users\daniel.riverar_pragm\Desktop\Ms\tournament_ms\bin\Debug\net8.0\zh-Hant\Microsoft.TestPlatform.CrossPlatEngine.resources.dll
 C:\Users\daniel.riverar_pragm\Desktop\Ms\tournament_ms\bin\Debug\net8.0\zh-Hant\Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+C:\Users\daniel.riverar_pragm\Desktop\Ms\tournament_ms\bin\Debug\net8.0\Prometheus.NetStandard.dll
+C:\Users\daniel.riverar_pragm\Desktop\Ms\tournament_ms\bin\Debug\net8.0\Prometheus.AspNetCore.dll

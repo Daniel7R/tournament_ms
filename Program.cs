@@ -103,6 +103,8 @@ app.UseHttpMetrics();
 app.UseEndpoints(endpoints => {
     endpoints.MapMetrics();
 });
+
+app.MapGet("/", () => Results.Ok("Healthy"));
 app.MapControllers();
 
 app.Run();
